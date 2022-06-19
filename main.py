@@ -26,9 +26,9 @@ def printNewNovels():
         currentNovel = novelList[i]
         novel["id"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
         if (novel["id"] == lastNovelId): break
-        novel["author"] = currentNovel.find(class_="author").text.strip()
         novel["title"] = currentNovel.find(class_="title").text.strip()
-        print("id: " + str(novel["id"]) + "\nauthor: " + novel["author"] + "\ntitle: " + novel["title"] + "\n")
+        novel["author"] = currentNovel.find(class_="author").text.strip()
+        print("id: " + str(novel["id"]) + "\ntitle: " + novel["title"] + "\nauthor: " + novel["author"] + "\n")
         newNovels.append(novel)
     if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
     print(lastNovelId)
@@ -40,4 +40,4 @@ schedule.every().minute.at(":00").do(printNewNovels)
 
 while True:
     schedule.run_pending()
-    time.sleep(0.5)
+    time.sleep(0.25)
