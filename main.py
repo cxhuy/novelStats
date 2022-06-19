@@ -16,6 +16,9 @@ def getSoup(url):
 
     return soup
 
+def extractVal(dd):
+    return int(dd.text.split(' ')[0].replace(',', ''))
+
 def printNewNovels():
     print(datetime.now())
     global lastNovelId, initialRun
@@ -34,12 +37,27 @@ def printNewNovels():
             if (novel["id"] == lastNovelId): break
             novel["title"] = currentNovel.find(class_="title").text.strip()
             novel["author"] = currentNovel.find(class_="author").text.strip()
-            print("id: " + str(novel["id"]) + "\ntitle: " + novel["title"] + "\nauthor: " + novel["author"] + "\n")
+
+            novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
+            novelDetails = getSoup(novelUrl).find(class_="detail-box").select('dl')[-1].select('dd')
+            novel["chapters"] = extractVal(novelDetails[0])
+            novel["letters"] = extractVal(novelDetails[3])
+            novel["start_views"] = extractVal(novelDetails[1])
+            novel["finish_views"] = -1
+            novel["start_likes"] = extractVal(novelDetails[2])
+            novel["finish_likes"] = -1
+            # print("id: " + str(novel["id"]) + "\ntitle: " + novel["title"] + "\nauthor: " + novel["author"] + "\n")
             newNovels.append(novel)
         if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
 
     # print(lastNovelId)
-    print("none" if len(newNovels) == 0 else newNovels, end='\n')
+    if (len(newNovels) == 0):
+        print("none\n")
+    else:
+        for novelToPrint in newNovels:
+            print(novelToPrint)
+        print()
+    # print("none" if len(newNovels) == 0 else newNovels, end='\n')
 
 print("started script at " + str(datetime.now()) + "\n")
 
