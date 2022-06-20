@@ -49,7 +49,19 @@ def printNewNovels():
             novel["author"] = currentNovel.find(class_="author").text.strip()
             novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
             currentTime = datetime.now()
-            novelDetails = getSoup(novelUrl).find(class_="detail-box").select('dl')[-1].select('dd')
+            novelDetails = getSoup(novelUrl).find(class_="detail-box")
+            novel["genre"] = novelDetails.find(class_="meta-path").find('strong').text.strip()
+            try:
+                exclusive = novelDetails.select_one('a').find('span').text.strip()
+                if (exclusive == "독점"):
+                    novel["exclusive"] = 2
+                elif (exclusive == "선독점"):
+                    novel["exclusive"] = 1
+            except:
+                novel["exclusive"] = 0
+
+            novelDetails = novelDetails.select('dl')[-1].select('dd')
+
             novel["chapters"] = extractVal(novelDetails[0])
             novel["letters"] = extractVal(novelDetails[3])
             novel["start_views"] = extractVal(novelDetails[1])
