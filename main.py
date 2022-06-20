@@ -88,7 +88,7 @@ def printNewNovels():
                 novelDetails = novelDetails.select('dl')[-1].select('dd')
 
                 novel["chapters"] = extractVal(novelDetails[0])
-                novel["letters"] = extractVal(novelDetails[3])
+                novel["characters"] = extractVal(novelDetails[3])
                 novel["start_views"] = extractVal(novelDetails[1])
                 novel["end_views"] = -1
                 novel["start_likes"] = extractVal(novelDetails[2])
