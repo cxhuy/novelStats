@@ -20,15 +20,21 @@ def extractVal(val):
     return int(val.text.split(' ')[0].replace(',', ''))
 
 def checkLater(novel):
-    novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
-    currentTime = datetime.now()
-    novelDetails = getSoup(novelUrl).find(class_="detail-box")
-    novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
-    novelDetails = novelDetails.select('dl')[-1].select('dd')
-    novel["end_views"] = extractVal(novelDetails[1])
-    novel["end_likes"] = extractVal(novelDetails[2])
-    novel["end_time"] = currentTime
-    print(novel)
+    try:
+        novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
+        currentTime = datetime.now()
+        novelDetails = getSoup(novelUrl).find(class_="detail-box")
+        novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
+        novelDetails = novelDetails.select('dl')[-1].select('dd')
+        novel["end_views"] = extractVal(novelDetails[1])
+        novel["end_likes"] = extractVal(novelDetails[2])
+        novel["end_time"] = currentTime
+        print(novel)
+
+    except Exception as e:
+        print("ERROR AT " + str(novel["id"]))
+        print(e)
+
     return schedule.CancelJob
 
 def printNewNovels():
@@ -51,36 +57,46 @@ def printNewNovels():
             novel["author"] = currentNovel.find(class_="author").text.strip()
             novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
             currentTime = datetime.now()
-            novelDetails = getSoup(novelUrl).find(class_="detail-box")
-            novel["genre"] = novelDetails.find(class_="meta-path").find('strong').text.strip()
-            try:
-                exclusive = novelDetails.select_one('a').find('span').text.strip()
-                if (exclusive == "독점"):
-                    novel["exclusive"] = 2
-                elif (exclusive == "선독점"):
-                    novel["exclusive"] = 1
-            except:
-                novel["exclusive"] = 0
-            novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
-            novel["end_favs"] = -1
-            novelDetails = novelDetails.select('dl')[-1].select('dd')
 
-            novel["chapters"] = extractVal(novelDetails[0])
-            novel["letters"] = extractVal(novelDetails[3])
-            novel["start_views"] = extractVal(novelDetails[1])
-            novel["end_views"] = -1
-            novel["start_likes"] = extractVal(novelDetails[2])
-            novel["end_likes"] = -1
-            novel["start_time"] = currentTime
-            novel["end_time"] = -1
-            # print("id: " + str(novel["id"]) + "\ntitle: " + novel["title"] + "\nauthor: " + novel["author"] + "\n")
-            newNovels.append(novel)
-            laterTime = currentTime + timedelta(hours=2)
-            laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
-            schedule.every().day.at(laterTime).do(checkLater, novel)
+            try:
+                novelDetails = getSoup(novelUrl).find(class_="detail-box")
+                novel["genre"] = novelDetails.find(class_="meta-path").find('strong').text.strip()
+
+                try:
+                    exclusive = novelDetails.select_one('a').find('span').text.strip()
+                    if (exclusive == "독점"):
+                        novel["exclusive"] = 2
+                    elif (exclusive == "선독점"):
+                        novel["exclusive"] = 1
+                except:
+                    novel["exclusive"] = 0
+
+                novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
+                novel["end_favs"] = -1
+
+                novelDetails = novelDetails.select('dl')[-1].select('dd')
+
+                novel["chapters"] = extractVal(novelDetails[0])
+                novel["letters"] = extractVal(novelDetails[3])
+                novel["start_views"] = extractVal(novelDetails[1])
+                novel["end_views"] = -1
+                novel["start_likes"] = extractVal(novelDetails[2])
+                novel["end_likes"] = -1
+                novel["start_time"] = currentTime
+                novel["end_time"] = -1
+
+                newNovels.append(novel)
+
+                laterTime = currentTime + timedelta(hours=2)
+                laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
+                schedule.every().day.at(laterTime).do(checkLater, novel)
+
+            except Exception as e:
+                print("ERROR AT " + str(novel["id"]))
+                print(e)
+
         if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
 
-    # print(lastNovelId)
     if (len(newNovels) == 0):
         print("none")
     else:
