@@ -16,13 +16,15 @@ def getSoup(url):
 
     return soup
 
-def extractVal(dd):
-    return int(dd.text.split(' ')[0].replace(',', ''))
+def extractVal(val):
+    return int(val.text.split(' ')[0].replace(',', ''))
 
 def checkLater(novel):
     novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
     currentTime = datetime.now()
-    novelDetails = getSoup(novelUrl).find(class_="detail-box").select('dl')[-1].select('dd')
+    novelDetails = getSoup(novelUrl).find(class_="detail-box")
+    novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
+    novelDetails = novelDetails.select('dl')[-1].select('dd')
     novel["end_views"] = extractVal(novelDetails[1])
     novel["end_likes"] = extractVal(novelDetails[2])
     novel["end_time"] = currentTime
@@ -59,7 +61,8 @@ def printNewNovels():
                     novel["exclusive"] = 1
             except:
                 novel["exclusive"] = 0
-
+            novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
+            novel["end_favs"] = -1
             novelDetails = novelDetails.select('dl')[-1].select('dd')
 
             novel["chapters"] = extractVal(novelDetails[0])
@@ -72,7 +75,7 @@ def printNewNovels():
             novel["end_time"] = -1
             # print("id: " + str(novel["id"]) + "\ntitle: " + novel["title"] + "\nauthor: " + novel["author"] + "\n")
             newNovels.append(novel)
-            laterTime = currentTime + timedelta(hours=1)
+            laterTime = currentTime + timedelta(hours=2)
             laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
             schedule.every().day.at(laterTime).do(checkLater, novel)
         if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
@@ -83,7 +86,7 @@ def printNewNovels():
     else:
         for novelToPrint in newNovels:
             print(novelToPrint)
-    print("[Old Novels]")
+    print("\n[Old Novels]")
 
 
 print("started script at " + str(datetime.now()) + "\n")
