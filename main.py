@@ -18,12 +18,38 @@ def getSoup(url):
 def extractVal(val):
     return int(val.text.split(' ')[0].replace(',', ''))
 
+# gets number from script in page source string
+def getScriptNumber(script, idx):
+    scriptNumber = ""
+
+    while (script[idx] != ','):
+        idx += 1
+    idx += 2
+
+    while (script[idx] != ']' and script[idx] != ','):
+        scriptNumber += script[idx]
+        idx += 1
+
+    return int(scriptNumber)
+
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
         novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
         currentTime = datetime.now()
-        novelDetails = getSoup(novelUrl).find(class_="detail-box")
+        novelPage = getSoup(novelUrl)
+        novelDetails = novelPage.find(class_="detail-box")
+        novelPage = str(novelPage)
+        novelPage = novelPage[novelPage.find("'남성', "):]
+
+        novel["male"] = getScriptNumber(novelPage, novelPage.find("'남성', "))
+        novel["female"] = getScriptNumber(novelPage, novelPage.find("'여성', "))
+        novel["age_10"] = getScriptNumber(novelPage, novelPage.find("'10대', "))
+        novel["age_20"] = getScriptNumber(novelPage, novelPage.find("'20대', "))
+        novel["age_30"] = getScriptNumber(novelPage, novelPage.find("'30대', "))
+        novel["age_40"] = getScriptNumber(novelPage, novelPage.find("'40대', "))
+        novel["age_50"] = getScriptNumber(novelPage, novelPage.find("'50대 이상', "))
+
         novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
         novelDetails = novelDetails.select('dl')[-1].select('dd')
         novel["end_views"] = extractVal(novelDetails[1])
@@ -95,11 +121,18 @@ def printNewNovels():
                 novel["end_likes"] = -1
                 novel["start_time"] = currentTime
                 novel["end_time"] = -1
+                novel["male"] = -1
+                novel["female"] = -1
+                novel["age_10"] = -1
+                novel["age_20"] = -1
+                novel["age_30"] = -1
+                novel["age_40"] = -1
+                novel["age_50"] = -1
 
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=15)
+                laterTime = currentTime + timedelta(minutes=2)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
