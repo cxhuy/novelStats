@@ -1,4 +1,4 @@
-import requests, schedule, time
+import requests, schedule, time, traceback
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
@@ -35,9 +35,20 @@ def getScriptNumber(script, idx):
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
-        novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
+        novelUrl = "https://novel.munpia.com/" + str(novel["id"])
         currentTime = datetime.now()
         novelPage = getSoup(novelUrl)
+
+        try:
+            novelTagList = novelPage.find(class_="story-box").find(class_="tag-list").select('a')
+            novelTags = []
+            for tag in novelTagList:
+                novelTags.append(tag.text.strip().replace('#', ''))
+            novel["tags"] = novelTags
+
+        except:
+            novel["tags"] = []
+
         novelDetails = novelPage.find(class_="detail-box")
         novelPage = str(novelPage)
         novelPage = novelPage[novelPage.find("'남성', "):]
@@ -57,9 +68,9 @@ def checkLater(novel):
         novel["end_time"] = currentTime
         print(novel)
 
-    except Exception as e:
+    except:
         print("ERROR AT " + str(novel["id"]))
-        print(e)
+        traceback.print_exc()
 
     return schedule.CancelJob
 
@@ -132,13 +143,13 @@ def printNewNovels():
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=2)
+                laterTime = currentTime + timedelta(minutes=1)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
-            except Exception as e:
+            except:
                 print("ERROR AT " + str(novel["id"]))
-                print(e)
+                traceback.print_exc()
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
         if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
