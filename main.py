@@ -122,6 +122,13 @@ def printNewNovels():
                 novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
                 novel["end_favs"] = -1
 
+                novelTime = novelDetails.select('dl')[-2].select('dd')
+
+                novel["registration"] = datetime.strptime(novelTime[0].text, "%Y.%m.%d %H:%M")
+                novel["latest_chapter"] = datetime.strptime(novelTime[1].text, "%Y.%m.%d %H:%M")
+
+                if ((currentTime - novel["latest_chapter"]).total_seconds() > 120): continue
+
                 novelDetails = novelDetails.select('dl')[-1].select('dd')
 
                 novel["chapters"] = extractVal(novelDetails[0])
@@ -143,7 +150,7 @@ def printNewNovels():
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=1)
+                laterTime = currentTime + timedelta(minutes=15)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
