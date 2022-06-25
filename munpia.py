@@ -1,6 +1,10 @@
 import requests, schedule, time, traceback
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
+from konlpy.tag import Hannanum, Okt
+
+okt = Okt()
+hannanum = Hannanum()
 
 url = 'https://novel.munpia.com/page/novelous/group/nv.regular/gpage/1'
 lastNovelId = -1
@@ -31,6 +35,14 @@ def getScriptNumber(script, idx):
         idx += 1
 
     return int(scriptNumber)
+
+def extractKeywords(title):
+    keywords = []
+    for noun in hannanum.nouns(title):
+        if noun not in keywords: keywords.append(noun)
+    for noun in okt.nouns(title):
+        if noun not in keywords: keywords.append(noun)
+    return keywords
 
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
@@ -146,6 +158,7 @@ def printNewNovels():
                 novel["age_30"] = -1
                 novel["age_40"] = -1
                 novel["age_50"] = -1
+                novel["keywords"] = extractKeywords(novel["title"])
 
                 newNovels.append(novel)
 
