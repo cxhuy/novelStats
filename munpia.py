@@ -20,7 +20,7 @@ def getSoup(url):
 
 # extract integer from string
 def extractVal(val):
-    return int(val.text.split(' ')[0].replace(',', ''))
+    return int(''.join([s for s in val if s.isdigit()]))
 
 # gets number from script in page source string
 def getScriptNumber(script, idx):
@@ -73,10 +73,10 @@ def checkLater(novel):
         novel["age_40"] = getScriptNumber(novelPage, novelPage.find("'40대', "))
         novel["age_50"] = getScriptNumber(novelPage, novelPage.find("'50대 이상', "))
 
-        novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
+        novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b').text)
         novelDetails = novelDetails.select('dl')[-1].select('dd')
-        novel["end_views"] = extractVal(novelDetails[1])
-        novel["end_likes"] = extractVal(novelDetails[2])
+        novel["end_views"] = extractVal(novelDetails[1].text)
+        novel["end_likes"] = extractVal(novelDetails[2].text)
         novel["end_time"] = currentTime
         print(novel)
 
@@ -131,7 +131,7 @@ def printNewNovels():
                 except:
                     novel["exclusive"] = 0
 
-                novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
+                novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b').text)
                 novel["end_favs"] = -1
 
                 novelTime = novelDetails.select('dl')[-2].select('dd')
@@ -143,11 +143,11 @@ def printNewNovels():
 
                 novelDetails = novelDetails.select('dl')[-1].select('dd')
 
-                novel["chapters"] = extractVal(novelDetails[0])
-                novel["characters"] = extractVal(novelDetails[3])
-                novel["start_views"] = extractVal(novelDetails[1])
+                novel["chapters"] = extractVal(novelDetails[0].text)
+                novel["characters"] = extractVal(novelDetails[3].text)
+                novel["start_views"] = extractVal(novelDetails[1].text)
                 novel["end_views"] = -1
-                novel["start_likes"] = extractVal(novelDetails[2])
+                novel["start_likes"] = extractVal(novelDetails[2].text)
                 novel["end_likes"] = -1
                 novel["start_time"] = currentTime
                 novel["end_time"] = -1
@@ -163,7 +163,7 @@ def printNewNovels():
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=15)
+                laterTime = currentTime + timedelta(minutes=2)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
