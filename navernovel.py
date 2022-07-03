@@ -20,7 +20,7 @@ def getSoup(url):
 
 # extract integer from string
 def extractVal(val):
-    return int(val.text.split(' ')[0].replace(',', ''))
+    return int(''.join([s for s in val if s.isdigit()]))
 
 # gets number from script in page source string
 def getScriptNumber(script, idx):
@@ -47,36 +47,15 @@ def extractKeywords(title):
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
-        novelUrl = "https://novel.munpia.com/" + str(novel["id"])
+        novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["id"])
         currentTime = datetime.now()
         novelPage = getSoup(novelUrl)
 
-        try:
-            novelTagList = novelPage.find(class_="story-box").find(class_="tag-list").select('a')
-            novelTags = []
-            for tag in novelTagList:
-                novelTags.append(tag.text.strip().replace('#', ''))
-            novel["tags"] = novelTags
+        novel["tags"] = []
 
-        except:
-            novel["tags"] = []
-
-        novelDetails = novelPage.find(class_="detail-box")
-        novelPage = str(novelPage)
-        novelPage = novelPage[novelPage.find("'남성', "):]
-
-        novel["male"] = getScriptNumber(novelPage, novelPage.find("'남성', "))
-        novel["female"] = getScriptNumber(novelPage, novelPage.find("'여성', "))
-        novel["age_10"] = getScriptNumber(novelPage, novelPage.find("'10대', "))
-        novel["age_20"] = getScriptNumber(novelPage, novelPage.find("'20대', "))
-        novel["age_30"] = getScriptNumber(novelPage, novelPage.find("'30대', "))
-        novel["age_40"] = getScriptNumber(novelPage, novelPage.find("'40대', "))
-        novel["age_50"] = getScriptNumber(novelPage, novelPage.find("'50대 이상', "))
-
-        novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
-        novelDetails = novelDetails.select('dl')[-1].select('dd')
-        novel["end_views"] = extractVal(novelDetails[1])
-        novel["end_likes"] = extractVal(novelDetails[2])
+        # novel["end_views"] = extractVal(novelDetails[1])
+        novel["end_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
+        novel["end_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
         novel["end_time"] = currentTime
         print(novel)
 
@@ -109,67 +88,54 @@ def printNewNovels():
 
             novel["title"] = currentNovel.select_one('a').get('title').strip()
             novel["author"] = currentNovel.find(class_="ellipsis").text.strip()
-            
+            novel["chapters"] = extractVal(currentNovel.find(class_="num_total").text.strip())
+            novel["rating"] = float(currentNovel.find(class_="rating").select_one('em').text.strip())
+            novel["genre"] = "로맨스"
+
             # try crawling additional information from the novel's individual page
-            novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
+            novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["id"])
             currentTime = datetime.now()
 
-            # try:
-            #     novelDetails = getSoup(novelUrl).find(class_="detail-box")
-            #     novel["genre"] = novelDetails.find(class_="meta-path").find('strong').text.strip()
-            #
-            #     # 0 = 독점 아님, 1 = 선독점, 2 = 독점
-            #     try:
-            #         exclusive = novelDetails.select_one('a').find('span').text.strip()
-            #
-            #         if (exclusive == "독점"):
-            #             novel["exclusive"] = 2
-            #
-            #         elif (exclusive == "선독점"):
-            #             novel["exclusive"] = 1
-            #
-            #     except:
-            #         novel["exclusive"] = 0
-            #
-            #     novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b'))
-            #     novel["end_favs"] = -1
-            #
-            #     novelTime = novelDetails.select('dl')[-2].select('dd')
-            #
-            #     novel["registration"] = datetime.strptime(novelTime[0].text, "%Y.%m.%d %H:%M")
-            #     novel["latest_chapter"] = datetime.strptime(novelTime[1].text, "%Y.%m.%d %H:%M")
-            #
-            #     if ((currentTime - novel["latest_chapter"]).total_seconds() > 120): continue
-            #
-            #     novelDetails = novelDetails.select('dl')[-1].select('dd')
-            #
-            #     novel["chapters"] = extractVal(novelDetails[0])
-            #     novel["characters"] = extractVal(novelDetails[3])
-            #     novel["start_views"] = extractVal(novelDetails[1])
-            #     novel["end_views"] = -1
-            #     novel["start_likes"] = extractVal(novelDetails[2])
-            #     novel["end_likes"] = -1
-            #     novel["start_time"] = currentTime
-            #     novel["end_time"] = -1
-            #     novel["male"] = -1
-            #     novel["female"] = -1
-            #     novel["age_10"] = -1
-            #     novel["age_20"] = -1
-            #     novel["age_30"] = -1
-            #     novel["age_40"] = -1
-            #     novel["age_50"] = -1
-            #     novel["keywords"] = extractKeywords(novel["title"])
-            #
-            #     newNovels.append(novel)
-            #
-            #     # schedule checkLater function for this novel
-            #     laterTime = currentTime + timedelta(minutes=15)
-            #     laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
-            #     schedule.every().day.at(laterTime).do(checkLater, novel)
-            #
-            # except:
-            #     print("ERROR AT " + str(novel["id"]))
-            #     traceback.print_exc()
+            try:
+                novelPage = getSoup(novelUrl)
+
+                novel["exclusive"] = -1
+
+                novel["start_favs"] = -1
+                novel["end_favs"] = -1
+
+                novel["start_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
+                novel["end_comments"] = -1
+
+                novel["registration"] = -1
+                novel["latest_chapter"] = -1
+
+                novel["characters"] = -1
+                novel["start_views"] = -1
+                novel["end_views"] = -1
+                novel["start_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
+                novel["end_likes"] = -1
+                novel["start_time"] = currentTime
+                novel["end_time"] = -1
+                novel["male"] = -1
+                novel["female"] = -1
+                novel["age_10"] = -1
+                novel["age_20"] = -1
+                novel["age_30"] = -1
+                novel["age_40"] = -1
+                novel["age_50"] = -1
+                novel["keywords"] = extractKeywords(novel["title"])
+
+                newNovels.append(novel)
+
+                # schedule checkLater function for this novel
+                laterTime = currentTime + timedelta(minutes=15)
+                laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
+                schedule.every().day.at(laterTime).do(checkLater, novel)
+
+            except:
+                print("ERROR AT " + str(novel["id"]))
+                traceback.print_exc()
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
         if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
