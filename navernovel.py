@@ -53,7 +53,8 @@ def checkLater(novel):
 
         novel["tags"] = []
 
-        # novel["end_views"] = extractVal(novelDetails[1])
+        novel["end_views"] = extractVal(novelPage.find(class_="list_type2").
+                                        select('li')[0].find(class_="rating").find_all(class_="count")[-1].text)
         novel["end_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
         novel["end_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
         novel["end_time"] = currentTime
@@ -116,7 +117,7 @@ def printNewNovels():
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=15)
+                laterTime = currentTime + timedelta(minutes=3)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
