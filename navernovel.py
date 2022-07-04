@@ -99,31 +99,18 @@ def printNewNovels():
             try:
                 novelPage = getSoup(novelUrl)
 
-                novel["exclusive"] = -1
-
-                novel["start_favs"] = -1
-                novel["end_favs"] = -1
+                # novel["start_favs"] = -1
+                # novel["end_favs"] = -1
 
                 novel["start_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
                 novel["end_comments"] = -1
 
-                novel["registration"] = -1
-                novel["latest_chapter"] = -1
-
-                novel["characters"] = -1
                 novel["start_views"] = -1
                 novel["end_views"] = -1
                 novel["start_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
                 novel["end_likes"] = -1
                 novel["start_time"] = currentTime
                 novel["end_time"] = -1
-                novel["male"] = -1
-                novel["female"] = -1
-                novel["age_10"] = -1
-                novel["age_20"] = -1
-                novel["age_30"] = -1
-                novel["age_40"] = -1
-                novel["age_50"] = -1
                 novel["keywords"] = extractKeywords(novel["title"])
 
                 newNovels.append(novel)
