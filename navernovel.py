@@ -51,8 +51,6 @@ def checkLater(novel):
         currentTime = datetime.now()
         novelPage = getSoup(novelUrl)
 
-        novel["tags"] = []
-
         novel["end_views"] = extractVal(novelPage.find(class_="list_type2").
                                         select('li')[0].find(class_="rating").find_all(class_="count")[-1].text)
         novel["end_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
