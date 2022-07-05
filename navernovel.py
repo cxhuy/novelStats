@@ -51,6 +51,7 @@ def checkLater(novel):
         currentTime = datetime.now()
         novelPage = getSoup(novelUrl)
 
+        novel["end_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
         novel["end_views"] = extractVal(novelPage.find(class_="list_type2").
                                         select('li')[0].find(class_="rating").find_all(class_="count")[-1].text)
         novel["end_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
@@ -88,7 +89,7 @@ def printNewNovels():
             novel["title"] = currentNovel.select_one('a').get('title').strip()
             novel["author"] = currentNovel.find(class_="ellipsis").text.strip()
             novel["chapters"] = extractVal(currentNovel.find(class_="num_total").text.strip())
-            novel["rating"] = float(currentNovel.find(class_="rating").select_one('em').text.strip())
+            # novel["rating"] = float(currentNovel.find(class_="rating").select_one('em').text.strip())
             novel["genre"] = "로맨스"
 
             # try crawling additional information from the novel's individual page
@@ -101,15 +102,21 @@ def printNewNovels():
                 # novel["start_favs"] = -1
                 # novel["end_favs"] = -1
 
+                novel["start_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
+                novel["end_rating"] = -1
+
                 novel["start_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
                 novel["end_comments"] = -1
 
-                novel["start_views"] = -1
+                novel["start_views"] = 0
                 novel["end_views"] = -1
+
                 novel["start_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
                 novel["end_likes"] = -1
+
                 novel["start_time"] = currentTime
                 novel["end_time"] = -1
+
                 novel["keywords"] = extractKeywords(novel["title"])
 
                 newNovels.append(novel)
