@@ -52,8 +52,9 @@ def checkLater(novel):
         novelPage = getSoup(novelUrl)
 
         novel["end_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
-        novel["end_views"] = extractVal(novelPage.find(class_="list_type2").
-                                        select('li')[0].find(class_="rating").find_all(class_="count")[-1].text)
+        if (novel["chapters"] > 0) :
+            novel["end_views"] = extractVal(novelPage.find(class_="list_type2").
+                                            select('li')[0].find(class_="rating").find_all(class_="count")[-1].text)
         novel["end_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
         novel["end_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
         novel["end_time"] = currentTime
