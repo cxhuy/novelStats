@@ -43,7 +43,7 @@ def getSoup(url):
     soup = BeautifulSoup(html, 'html.parser')
     return soup
 
-# extract numbers from string
+# extracts numbers from string
 def extractVal(val):
     return int(''.join([s for s in val if s.isdigit()]))
 
@@ -115,7 +115,7 @@ def checkLater(novel):
 
         novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b').text)
         novelDetails = novelDetails.select('dl')[-1].select('dd')
-        novel["end_views"] = extractVal(novelDetails[1].text)
+        novel["end_total_views"] = extractVal(novelDetails[1].text)
         novel["end_likes"] = extractVal(novelDetails[2].text)
         novel["end_time"] = currentTime
         printAndWrite(novel)
@@ -185,8 +185,8 @@ def scrapPage(url, price):
 
                 novel["chapters"] = extractVal(novelDetails[0].text)
                 novel["characters"] = extractVal(novelDetails[3].text)
-                novel["start_views"] = extractVal(novelDetails[1].text)
-                novel["end_views"] = -1
+                novel["start_total_views"] = extractVal(novelDetails[1].text)
+                novel["end_total_views"] = -1
                 novel["start_likes"] = extractVal(novelDetails[2].text)
                 novel["end_likes"] = -1
                 novel["start_time"] = currentTime
