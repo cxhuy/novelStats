@@ -32,9 +32,8 @@ f = open("logs/munpia/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
 okt = Okt()
 hannanum = Hannanum()
 
-url = 'https://novel.munpia.com/page/novelous/group/nv.regular/gpage/1'
-lastNovelId = -1
-initialRun = True
+lastNovelId = [-1, -1, -1]
+initialRun = [True, True, True]
 
 # function for getting soup of input url
 def getSoup(url):
@@ -74,6 +73,13 @@ def printAndWrite(toPrint):
     print(toPrint)
     f.write('\n' + str(toPrint))
     f.flush()
+
+def scrapAllPages():
+    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+    scrapPage("https://novel.munpia.com/page/novelous/group/nv.pro/gpage/1", 0)     # 무료 작가연재
+    scrapPage("https://novel.munpia.com/page/novelous/group/nv.regular/gpage/1", 1) # 무료 일반연재
+    scrapPage("https://novel.munpia.com/page/novelous/group/pl.serial/gpage/1", 2)  # 유료 연재작
+    printAndWrite("\n[Old Novels]")
 
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
@@ -118,25 +124,25 @@ def checkLater(novel):
     return schedule.CancelJob
 
 # refreshes every minute checking for newly uploaded novels
-def printNewNovels():
-    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+def scrapPage(url, price):
     global lastNovelId, initialRun
     newNovels = []
     novelList = getSoup(url).find(id="SECTION-LIST").select('li')
 
     # if this is the first time running the script, don't fetch the novels but update the last novel id
-    if (initialRun == True):
-        lastNovelId = int(novelList[0].find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
-        initialRun = False
+    if (initialRun[price] == True):
+        lastNovelId[price] = int(novelList[0].find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
+        initialRun[price] = False
 
     else:
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
+            novel["price"] = price
             novel["id"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId): break
+            if (novel["id"] == lastNovelId[price]): break
 
             novel["title"] = currentNovel.find(class_="title").text.strip()
             novel["author"] = currentNovel.find(class_="author").text.strip()
@@ -203,18 +209,15 @@ def printNewNovels():
                 printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
+        if (len(newNovels) > 0): lastNovelId[price] = newNovels[0]["id"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)
 
-    printAndWrite("\n[Old Novels]")
-
-
 printAndWrite("started script at " + str(datetime.now()) + "\n")
 
-# run function printNewNovels every minute
-schedule.every().minute.at(":00").do(printNewNovels)
+# run function scrapAllPages every minute
+schedule.every().minute.at(":00").do(scrapAllPages)
 
 while True:
     schedule.run_pending()
