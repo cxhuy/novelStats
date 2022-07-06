@@ -27,6 +27,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
 
+f = open("logs/munpia/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
+
 okt = Okt()
 hannanum = Hannanum()
 
@@ -68,6 +70,11 @@ def extractKeywords(title):
         if noun not in keywords: keywords.append(noun)
     return keywords
 
+def printAndWrite(toPrint):
+    print(toPrint)
+    f.write('\n' + str(toPrint))
+    f.flush()
+
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
@@ -102,17 +109,17 @@ def checkLater(novel):
         novel["end_views"] = extractVal(novelDetails[1].text)
         novel["end_likes"] = extractVal(novelDetails[2].text)
         novel["end_time"] = currentTime
-        print(novel)
+        printAndWrite(novel)
 
     except:
-        print("ERROR AT " + str(novel["id"]))
-        traceback.print_exc()
+        printAndWrite("ERROR AT " + str(novel["id"]))
+        printAndWrite(traceback.format_exc())
 
     return schedule.CancelJob
 
 # refreshes every minute checking for newly uploaded novels
 def printNewNovels():
-    print('\n' + str(datetime.now()) + "\n[New Novels]")
+    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
     global lastNovelId, initialRun
     newNovels = []
     novelList = getSoup(url).find(id="SECTION-LIST").select('li')
@@ -192,23 +199,19 @@ def printNewNovels():
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
             except:
-                print("ERROR AT " + str(novel["id"]))
-                traceback.print_exc()
+                printAndWrite("ERROR AT " + str(novel["id"]))
+                printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
         if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
 
-    if (len(newNovels) == 0):
-        print("none")
+    for novelToPrint in newNovels:
+        printAndWrite(novelToPrint)
 
-    else:
-        for novelToPrint in newNovels:
-            print(novelToPrint)
-
-    print("\n[Old Novels]")
+    printAndWrite("\n[Old Novels]")
 
 
-print("started script at " + str(datetime.now()) + "\n")
+printAndWrite("started script at " + str(datetime.now()) + "\n")
 
 # run function printNewNovels every minute
 schedule.every().minute.at(":00").do(printNewNovels)
