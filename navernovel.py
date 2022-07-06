@@ -1,7 +1,24 @@
+# 모든 플랫폼이 갖고 있는 데이터
+# id 작품 아이디
+# title 작품 제목
+# author 작가
+# genre 장르 (로맨스, 로판, 판타지, 현판, 무협, 미스터리, 라이트노벨)
+# time 크롤링 시작, 종료 시간
+# keywords 제목 키워드
+# chapters 회차수
+
+# 몇몇 플랫폼과 공유하고 있는 데이터
+# total_likes 전체 추천수
+
+# 해당 플랫폼에 유니크한 데이터
+# recent_views 최근화 조회
+
 import requests, schedule, time, traceback
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
+
+f = open("logs/navernovel/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
 
 okt = Okt()
 hannanum = Hannanum()
@@ -18,7 +35,7 @@ def getSoup(url):
     soup = BeautifulSoup(html, 'html.parser')
     return soup
 
-# extract integer from string
+# extracts number from string
 def extractVal(val):
     return int(''.join([s for s in val if s.isdigit()]))
 
@@ -36,6 +53,7 @@ def getScriptNumber(script, idx):
 
     return int(scriptNumber)
 
+# extracts keywords from title
 def extractKeywords(title):
     keywords = []
     for noun in hannanum.nouns(title):
@@ -43,6 +61,12 @@ def extractKeywords(title):
     for noun in okt.nouns(title):
         if noun not in keywords: keywords.append(noun)
     return keywords
+
+# prints and writes toPrint
+def printAndWrite(toPrint):
+    print(toPrint)
+    f.write('\n' + str(toPrint))
+    f.flush()
 
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
@@ -58,17 +82,17 @@ def checkLater(novel):
         novel["end_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
         novel["end_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
         novel["end_time"] = currentTime
-        print(novel)
+        printAndWrite(novel)
 
     except:
-        print("ERROR AT " + str(novel["id"]))
-        traceback.print_exc()
+        printAndWrite("ERROR AT " + str(novel["id"]))
+        printAndWrite(traceback.format_exc())
 
     return schedule.CancelJob
 
 # refreshes every minute checking for newly uploaded novels
 def printNewNovels():
-    print('\n' + str(datetime.now()) + "\n[New Novels]")
+    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
     global lastNovelId, initialRun
     newNovels = []
     novelList = getSoup(url).find(class_="list_type1").select('li')
@@ -90,7 +114,6 @@ def printNewNovels():
             novel["title"] = currentNovel.select_one('a').get('title').strip()
             novel["author"] = currentNovel.find(class_="ellipsis").text.strip()
             novel["chapters"] = extractVal(currentNovel.find(class_="num_total").text.strip())
-            # novel["rating"] = float(currentNovel.find(class_="rating").select_one('em').text.strip())
             novel["genre"] = "로맨스"
 
             # try crawling additional information from the novel's individual page
@@ -128,23 +151,23 @@ def printNewNovels():
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
             except:
-                print("ERROR AT " + str(novel["id"]))
-                traceback.print_exc()
+                printAndWrite("ERROR AT " + str(novel["id"]))
+                printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
         if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
 
     if (len(newNovels) == 0):
-        print("none")
+        printAndWrite("none")
 
     else:
         for novelToPrint in newNovels:
-            print(novelToPrint)
+            printAndWrite(novelToPrint)
 
-    print("\n[Old Novels]")
+    printAndWrite("\n[Old Novels]")
 
 
-print("started script at " + str(datetime.now()) + "\n")
+printAndWrite("started script at " + str(datetime.now()) + "\n")
 
 # run function printNewNovels every minute
 schedule.every().minute.at(":00").do(printNewNovels)
