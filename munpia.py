@@ -43,7 +43,7 @@ def getSoup(url):
     soup = BeautifulSoup(html, 'html.parser')
     return soup
 
-# extract integer from string
+# extract numbers from string
 def extractVal(val):
     return int(''.join([s for s in val if s.isdigit()]))
 
@@ -61,6 +61,7 @@ def getScriptNumber(script, idx):
 
     return int(scriptNumber)
 
+# extracts keywords from title
 def extractKeywords(title):
     keywords = []
     for noun in hannanum.nouns(title):
@@ -69,11 +70,13 @@ def extractKeywords(title):
         if noun not in keywords: keywords.append(noun)
     return keywords
 
+# prints and writes toPrint
 def printAndWrite(toPrint):
     print(toPrint)
     f.write('\n' + str(toPrint))
     f.flush()
 
+# runs scrapPage functions for all pages
 def scrapAllPages():
     printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
     scrapPage("https://novel.munpia.com/page/novelous/group/nv.pro/gpage/1", 0)     # 무료 작가연재
