@@ -1,3 +1,27 @@
+# 모든 플랫폼이 갖고 있는 데이터
+# id 작품 아이디
+# title 작품 제목
+# author 작가
+# genre 장르 (무협, 판타지, 퓨전, 게임, 스포츠, 로맨스, 라이트노, 현대판타지, 대체역사, 전쟁*밀리터리, SF, 추리, 공포*미스테리, 일반소, 시*수필,
+#            중*단편, 아동소설*동화, 드라마, 연극*시나리오, BL, 팬픽*패러디)
+# time 크롤링 시작, 종료 시간
+# keywords 제목 키워드
+# chapters 회차수
+
+# 몇몇 플랫폼과 공유하고 있는 데이터
+# exclusive 독점 여부 (0 = 독점 아님, 1 = 선독점, 2 = 독점)
+# total_likes 전체 추천수
+# favs 선작수
+# total_views 전체 조회수
+# tags 태그
+
+# 해당 플랫폼에 유니크한 데이터
+# male, female 성별별 독자수
+# age 연령별 독자 비율
+# registration 작품 등록일
+# latest_chapter 마지막 회차 업로드일
+# characters 총 글자수
+
 import requests, schedule, time, traceback
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
