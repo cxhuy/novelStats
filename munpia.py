@@ -9,7 +9,7 @@
 # chapters 회차수
 
 # 몇몇 플랫폼과 공유하고 있는 데이터
-# exclusive 독점 여부 (0 = 독점 아님, 1 = 선독점, 2 = 독점)
+# monopoly 독점 여부 (0 = 독점 아님, 1 = 선독점, 2 = 독점)
 # total_likes 전체 추천수
 # favs 선작수
 # total_views 전체 조회수
@@ -160,16 +160,16 @@ def scrapPage(url, price):
 
                 # 0 = 독점 아님, 1 = 선독점, 2 = 독점
                 try:
-                    exclusive = novelDetails.select_one('a').find('span').text.strip()
+                    monopoly = novelDetails.select_one('a').find('span').text.strip()
 
-                    if (exclusive == "독점"):
-                        novel["exclusive"] = 2
+                    if (monopoly == "독점"):
+                        novel["monopoly"] = 2
 
-                    elif (exclusive == "선독점"):
-                        novel["exclusive"] = 1
+                    elif (monopoly == "선독점"):
+                        novel["monopoly"] = 1
 
                 except:
-                    novel["exclusive"] = 0
+                    novel["monopoly"] = 0
 
                 novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b').text)
                 novel["end_favs"] = -1
