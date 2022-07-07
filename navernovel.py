@@ -83,7 +83,7 @@ def scrapAllPages():
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
-        novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["id"])
+        novelUrl = "https://novel.naver.com/best/list?novelId=" + str(novel["id"])
         currentTime = datetime.now()
         novelPage = getSoup(novelUrl)
 
