@@ -23,9 +23,9 @@ f = open("logs/navernovel/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 
 okt = Okt()
 hannanum = Hannanum()
 
-url = 'https://novel.naver.com/challenge/genre?genre=101'
-lastNovelId = -1
-initialRun = True
+# url = 'https://novel.naver.com/challenge/genre?genre=101'
+lastNovelId = [-1, -1, -1, -1, -1, -1, -1]
+initialRun = [True, True, True, True, True, True, True]
 
 # function for getting soup of input url
 def getSoup(url):
@@ -68,6 +68,18 @@ def printAndWrite(toPrint):
     f.write('\n' + str(toPrint))
     f.flush()
 
+# runs scrapPage functions for all pages
+def scrapAllPages():
+    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+    scrapPage("https://novel.naver.com/best/genre?genre=101", 0) # 로맨스
+    scrapPage("https://novel.naver.com/best/genre?genre=109", 1) # 로판
+    scrapPage("https://novel.naver.com/best/genre?genre=102", 2) # 판타지
+    scrapPage("https://novel.naver.com/best/genre?genre=110", 3) # 현판
+    scrapPage("https://novel.naver.com/best/genre?genre=103", 4) # 무협
+    scrapPage("https://novel.naver.com/best/genre?genre=104", 5) # 미스터리
+    scrapPage("https://novel.naver.com/best/genre?genre=106", 6) # 라이트노벨
+    printAndWrite("\n[Old Novels]")
+
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
@@ -91,16 +103,15 @@ def checkLater(novel):
     return schedule.CancelJob
 
 # refreshes every minute checking for newly uploaded novels
-def printNewNovels():
-    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+def scrapPage(url, genre):
     global lastNovelId, initialRun
     newNovels = []
     novelList = getSoup(url).find(class_="list_type1").select('li')
 
     # if this is the first time running the script, don't fetch the novels but update the last novel id
-    if (initialRun == True):
-        lastNovelId = int(novelList[0].select_one('a').get('href').split("/best/list?novelId=")[-1])
-        initialRun = False
+    if (initialRun[genre] == True):
+        lastNovelId[genre] = int(novelList[0].select_one('a').get('href').split("/best/list?novelId=")[-1])
+        initialRun[genre] = False
 
     else:
         for i in range(len(novelList)):
@@ -109,12 +120,12 @@ def printNewNovels():
             novel["id"] = int(currentNovel.select_one('a').get('href').split("/best/list?novelId=")[-1])
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId): break
+            if (novel["id"] == lastNovelId[genre]): break
 
             novel["title"] = currentNovel.select_one('a').get('title').strip()
             novel["author"] = currentNovel.find(class_="ellipsis").text.strip()
             novel["chapters"] = extractVal(currentNovel.find(class_="num_total").text.strip())
-            novel["genre"] = "로맨스"
+            novel["genre"] = ["로맨스", "로판", "판타지", "현판", "무협", "미스터리", "라이트노벨"][genre]
 
             # try crawling additional information from the novel's individual page
             novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["id"])
@@ -155,22 +166,15 @@ def printNewNovels():
                 printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId = newNovels[0]["id"]
+        if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["id"]
 
-    if (len(newNovels) == 0):
-        printAndWrite("none")
-
-    else:
-        for novelToPrint in newNovels:
-            printAndWrite(novelToPrint)
-
-    printAndWrite("\n[Old Novels]")
-
+    for novelToPrint in newNovels:
+        printAndWrite(novelToPrint)
 
 printAndWrite("started script at " + str(datetime.now()) + "\n")
 
 # run function printNewNovels every minute
-schedule.every().minute.at(":00").do(printNewNovels)
+schedule.every().minute.at(":00").do(scrapAllPages)
 
 while True:
     schedule.run_pending()
