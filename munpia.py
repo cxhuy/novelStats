@@ -156,7 +156,7 @@ def scrapPage(url, price):
 
             try:
                 novelDetails = getSoup(novelUrl).find(class_="detail-box")
-                novel["genre"] = novelDetails.find(class_="meta-path").find('strong').text.strip()
+                novel["genre"] = novelDetails.find(class_="meta-path").find('strong').text.replace(' ', '').split(',')
 
                 # 0 = 독점 아님, 1 = 선독점, 2 = 독점
                 try:
@@ -203,7 +203,7 @@ def scrapPage(url, price):
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=2)
+                laterTime = currentTime + timedelta(minutes=10)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
