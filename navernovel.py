@@ -11,7 +11,9 @@
 # total_likes 전체 추천수
 
 # 해당 플랫폼에 유니크한 데이터
-# recent_views 최근화 조회
+# recent_views 최신화 조회수
+# recent_comments 최신화 댓글수
+# reviews 리뷰수
 
 import requests, schedule, time, traceback
 from bs4 import BeautifulSoup
@@ -89,9 +91,12 @@ def checkLater(novel):
 
         novel["end_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
         if (novel["chapters"] > 0) :
-            novel["end_views"] = extractVal(novelPage.find(class_="list_type2").
-                                            select('li')[0].find(class_="rating").find_all(class_="count")[-1].text)
-        novel["end_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
+            novel["end_recent_views"] = extractVal(novelPage.find(class_="list_type2").select('li')[0].
+                                            find(class_="rating").find_all(class_="count")[-1].text)
+            novel["end_recent_comments"] = extractVal(novelPage.find(class_="list_type2").select('li')[0].
+                                            find(class_="rating").find_all(class_="count")[0].find(class_="num").text)
+
+        novel["end_reviews"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
         novel["end_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
         novel["end_time"] = currentTime
         printAndWrite(novel)
@@ -140,11 +145,14 @@ def scrapPage(url, genre):
                 novel["start_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
                 novel["end_rating"] = -1
 
-                novel["start_comments"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
-                novel["end_comments"] = -1
+                novel["start_recent_comments"] = 0
+                novel["end_recent_comments"] = -1
 
-                novel["start_views"] = 0
-                novel["end_views"] = -1
+                novel["start_reviews"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
+                novel["end_reviews"] = -1
+
+                novel["start_recent_views"] = 0
+                novel["end_recent_views"] = -1
 
                 novel["start_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
                 novel["end_likes"] = -1
