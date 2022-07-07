@@ -105,12 +105,12 @@ def checkLater(novel):
 
         for coin in novelPage.find(id="donation_board1").select('tr')[:-1]:
             coin = coin.select('td')[-1].text
-            if coin == "후원된 내역이 없습니다.": break
+            if coin == "후원된 내역이 없습니다." or coin == "작가님의 첫 후원자가 되어주세요!": break
             recent_coins += extractVal(coin)
 
         for coin in novelPage.find(id="donation_board2").select('tr')[:-1]:
             coin = coin.select('td')[-1].text
-            if coin == "작가님의 첫 후원자가 되어주세요!": break
+            if coin == "후원된 내역이 없습니다." or coin == "작가님의 첫 후원자가 되어주세요!": break
             total_coins += extractVal(coin)
 
         novel["recent_coins"] = recent_coins
