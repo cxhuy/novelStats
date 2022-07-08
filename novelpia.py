@@ -125,15 +125,15 @@ def checkLater(novel):
     return schedule.CancelJob
 
 # refreshes every minute checking for newly uploaded novels
-def scrapPage(url, price):
+def scrapPage(url, pricing):
     global lastNovelId, initialRun
     newNovels = []
     novelList = getSoup(url).find_all(class_="novelbox")
 
     # if this is the first time running the script, don't fetch the novels but update the last novel id
-    if (initialRun[price] == True):
-        lastNovelId[price] = int(novelList[0].find(class_="name_st").get('onclick').split('/')[-1].replace('\';', ''))
-        initialRun[price] = False
+    if (initialRun[pricing] == True):
+        lastNovelId[pricing] = int(novelList[0].find(class_="name_st").get('onclick').split('/')[-1].replace('\';', ''))
+        initialRun[pricing] = False
 
     else:
         scheduled_novels = []
@@ -141,16 +141,16 @@ def scrapPage(url, price):
         for job in schedule.jobs[1:]:
             scheduled_novels.append(job.job_func.args[0]["id"])
 
-        print(scheduled_novels)
+        # print(scheduled_novels)
 
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
-            novel["price"] = price
+            novel["pricing"] = ["자유연재", "플러스"][pricing]
             novel["id"] = int(currentNovel.find(class_="name_st").get('onclick').split('/')[-1].replace('\';', ''))
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId[price] or novel["id"] in scheduled_novels): break
+            if (novel["id"] == lastNovelId[pricing] or novel["id"] in scheduled_novels): break
 
             novel["title"] = currentNovel.find(class_="name_st").text.strip()
             novel["author"] = currentNovel.find(class_="info_font").text.strip()
@@ -175,8 +175,7 @@ def scrapPage(url, price):
                 novel["genre"] = genre
                 novel["tags"] = tags
 
-                # 0 = 독점 아님, 1 = 독점
-                novel["monopoly"] = 1 if novelPage.find(class_="b_mono") is not None else 0
+                novel["monopoly"] = "독점" if novelPage.find(class_="b_mono") is not None else "비독점"
 
                 novel["age_restriction"] = "15" if novelPage.find(class_="b_15") is not None else "ALL"
 
@@ -207,7 +206,7 @@ def scrapPage(url, price):
                 printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[price] = newNovels[0]["id"]
+        if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["id"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)
