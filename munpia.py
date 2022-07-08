@@ -158,18 +158,11 @@ def scrapPage(url, price):
                 novelDetails = getSoup(novelUrl).find(class_="detail-box")
                 novel["genre"] = novelDetails.find(class_="meta-path").find('strong').text.replace(' ', '').split(',')
 
-                # 0 = 독점 아님, 1 = 선독점, 2 = 독점
                 try:
-                    monopoly = novelDetails.select_one('a').find('span').text.strip()
-
-                    if (monopoly == "독점"):
-                        novel["monopoly"] = 2
-
-                    elif (monopoly == "선독점"):
-                        novel["monopoly"] = 1
+                    novel["monopoly"] = novelDetails.select_one('a').find('span').text.strip()
 
                 except:
-                    novel["monopoly"] = 0
+                    novel["monopoly"] = "비독점"
 
                 novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b').text)
                 novel["end_favs"] = -1
