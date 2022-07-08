@@ -136,6 +136,13 @@ def scrapPage(url, price):
         initialRun[price] = False
 
     else:
+        scheduled_novels = []
+
+        for job in schedule.jobs[1:]:
+            scheduled_novels.append(job.job_func.args[0]["id"])
+
+        print(scheduled_novels)
+
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
@@ -143,7 +150,7 @@ def scrapPage(url, price):
             novel["id"] = int(currentNovel.find(class_="name_st").get('onclick').split('/')[-1].replace('\';', ''))
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId[price]): break
+            if (novel["id"] == lastNovelId[price] or novel["id"] in scheduled_novels): break
 
             novel["title"] = currentNovel.find(class_="name_st").text.strip()
             novel["author"] = currentNovel.find(class_="info_font").text.strip()
