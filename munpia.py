@@ -127,25 +127,25 @@ def checkLater(novel):
     return schedule.CancelJob
 
 # refreshes every minute checking for newly uploaded novels
-def scrapPage(url, price):
+def scrapPage(url, pricing):
     global lastNovelId, initialRun
     newNovels = []
     novelList = getSoup(url).find(id="SECTION-LIST").select('li')
 
     # if this is the first time running the script, don't fetch the novels but update the last novel id
-    if (initialRun[price] == True):
-        lastNovelId[price] = int(novelList[0].find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
-        initialRun[price] = False
+    if (initialRun[pricing] == True):
+        lastNovelId[pricing] = int(novelList[0].find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
+        initialRun[pricing] = False
 
     else:
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
-            novel["price"] = price
+            novel["pricing"] = ["무료 작가연재", "무료 일반연재", "유료 연재작"][pricing]
             novel["id"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId[price]): break
+            if (novel["id"] == lastNovelId[pricing]): break
 
             novel["title"] = currentNovel.find(class_="title").text.strip()
             novel["author"] = currentNovel.find(class_="author").text.strip()
@@ -205,7 +205,7 @@ def scrapPage(url, price):
                 printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[price] = newNovels[0]["id"]
+        if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["id"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)
