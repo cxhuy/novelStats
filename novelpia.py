@@ -153,7 +153,7 @@ def scrapPage(url, pricing):
 
                 novel["monopoly"] = "독점" if novelPage.find(class_="b_mono") is not None else "비독점"
 
-                novel["age_restriction"] = "15" if novelPage.find(class_="b_15") is not None else "ALL"
+                novel["age_restriction"] = 15 if novelPage.find(class_="b_15") is not None else 0
 
                 novel["start_favs"] = extractVal(novelPage.find(id="like_text").text)
                 novel["end_favs"] = -1
