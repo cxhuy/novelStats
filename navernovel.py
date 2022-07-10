@@ -97,7 +97,7 @@ def checkLater(novel):
                                             find(class_="rating").find_all(class_="count")[0].find(class_="num").text)
 
         novel["end_reviews"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
-        novel["end_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
+        novel["end_total_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
         novel["end_time"] = currentTime
         printAndWrite(novel)
 
@@ -154,8 +154,8 @@ def scrapPage(url, genre):
                 novel["start_recent_views"] = 0
                 novel["end_recent_views"] = -1
 
-                novel["start_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
-                novel["end_likes"] = -1
+                novel["start_total_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
+                novel["end_total_likes"] = -1
 
                 novel["start_time"] = currentTime
                 novel["end_time"] = -1

@@ -116,7 +116,7 @@ def checkLater(novel):
         novel["end_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b').text)
         novelDetails = novelDetails.select('dl')[-1].select('dd')
         novel["end_total_views"] = extractVal(novelDetails[1].text)
-        novel["end_likes"] = extractVal(novelDetails[2].text)
+        novel["end_total_likes"] = extractVal(novelDetails[2].text)
         novel["end_time"] = currentTime
         printAndWrite(novel)
 
@@ -178,10 +178,11 @@ def scrapPage(url, pricing):
 
                 novel["chapters"] = extractVal(novelDetails[0].text)
                 novel["characters"] = extractVal(novelDetails[3].text)
+                novel["avg_characters"] = float(novel["characters"] / novel["chapters"])
                 novel["start_total_views"] = extractVal(novelDetails[1].text)
                 novel["end_total_views"] = -1
-                novel["start_likes"] = extractVal(novelDetails[2].text)
-                novel["end_likes"] = -1
+                novel["start_total_likes"] = extractVal(novelDetails[2].text)
+                novel["end_total_likes"] = -1
                 novel["start_time"] = currentTime
                 novel["end_time"] = -1
                 novel["male"] = -1

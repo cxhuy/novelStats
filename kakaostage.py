@@ -85,7 +85,7 @@ def checkLater(novel):
 
         novel["end_favs"] = novelData["favoriteCount"]
         novel["end_total_views"] = novelData["viewCount"]
-        novel["end_likes"] = novelData["episodeLikeCount"]
+        novel["end_total_likes"] = novelData["episodeLikeCount"]
         novel["end_time"] = currentTime
 
         printAndWrite(novel)
@@ -140,8 +140,8 @@ def scrapPage(url, genre):
 
                 novel["avg_characters"] = novelData["avgBodySize"]
 
-                novel["start_likes"] = novelData["episodeLikeCount"]
-                novel["end_likes"] = -1
+                novel["start_total_likes"] = novelData["episodeLikeCount"]
+                novel["end_total_likes"] = -1
 
                 novel["registration"] = datetime.strptime(novelData["firstPublishedAt"], '%Y-%m-%dT%H:%M:%S')
 
