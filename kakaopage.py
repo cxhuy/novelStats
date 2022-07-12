@@ -42,6 +42,7 @@ def printAndWrite(toPrint):
     f.write('\n' + str(toPrint))
     f.flush()
 
+# deletes double quotations in string
 def deleteDQ(anno):
     toReturn = ""
     while(anno.find("\"description\"") != -1):
@@ -56,10 +57,15 @@ def deleteDQ(anno):
 def scrapAllPages():
     printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=86&page=0", 0) # 판타지
+    time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=120&page=0", 1) # 현판
+    time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=89&page=0", 2) # 로맨스
+    time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=117&page=0", 3) # 로판
+    time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=87&page=0", 4) # 무협
+    time.sleep(2)
     # scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=1113&page=0", 5) # 판드
     # scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=1112&page=0", 6) # BL
     printAndWrite("\n[Old Novels]")
@@ -147,7 +153,7 @@ def scrapPage(url, genre):
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=10)
+                laterTime = currentTime + timedelta(hours=1)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
