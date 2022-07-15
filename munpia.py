@@ -88,7 +88,7 @@ def scrapAllPages():
 def checkLater(novel):
     try:
         novelUrl = "https://novel.munpia.com/" + str(novel["novelId"])
-        currentTime = datetime.now()
+        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
         novelPage = getSoup(novelUrl)
 
         try:
@@ -157,7 +157,7 @@ def scrapPage(url, pricing):
 
             # try crawling additional information from the novel's individual page
             novelUrl = 'https://novel.munpia.com/' + str(novel["novelId"])
-            currentTime = datetime.now()
+            currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
 
             try:
                 novelDetails = getSoup(novelUrl).find(class_="detail-box")
@@ -174,7 +174,7 @@ def scrapPage(url, pricing):
 
                 novelTime = novelDetails.select('dl')[-2].select('dd')
 
-                novel["registration"] = datetime.strptime(novelTime[0].text, "%Y.%m.%d %H:%M")
+                novel["registration"] = datetime.strptime(novelTime[0].text, "%Y.%m.%d %H:%M").strftime('%Y-%m-%d %H:%M:%S.000')
                 # novel["latest_chapter"] = datetime.strptime(novelTime[1].text, "%Y.%m.%d %H:%M")
                 #
                 # if ((currentTime - novel["latest_chapter"]).total_seconds() > 120): continue

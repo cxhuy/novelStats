@@ -86,7 +86,7 @@ def scrapAllPages():
 def checkLater(novel):
     try:
         novelUrl = "https://novel.naver.com/best/list?novelId=" + str(novel["novelId"])
-        currentTime = datetime.now()
+        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
         novelPage = getSoup(novelUrl)
 
         novel["end_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
@@ -139,7 +139,7 @@ def scrapPage(url, genre):
 
             # try crawling additional information from the novel's individual page
             novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["novelId"])
-            currentTime = datetime.now()
+            currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
 
             try:
                 novelPage = getSoup(novelUrl)

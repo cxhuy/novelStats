@@ -67,7 +67,7 @@ def scrapAllPages():
 def checkLater(novel):
     try:
         novelUrl = 'https://novelpia.com/novel/' + str(novel["novelId"])
-        currentTime = datetime.now()
+        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
         novelPage = getSoup(novelUrl)
 
         novel["end_favs"] = extractVal(novelPage.find(id="like_text").text)
@@ -131,7 +131,7 @@ def scrapPage(url, pricing):
 
             # try crawling additional information from the novel's individual page
             novelUrl = 'https://novelpia.com/novel/' + str(novel["novelId"])
-            currentTime = datetime.now()
+            currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
 
             try:
                 novelPage = getSoup(novelUrl)

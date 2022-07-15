@@ -74,7 +74,7 @@ def scrapAllPages():
 def checkLater(novel):
     try:
         novelUrl = "https://page.kakao.com/home?seriesId=" + str(novel["novelId"])
-        currentTime = datetime.now()
+        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
         novelData = json.loads(getSoup(novelUrl).find(id="__NEXT_DATA__").text)["props"]["initialState"]["series"]["series"]
 
         novel["chapters"] = novelData["onSaleCount"]
@@ -121,7 +121,7 @@ def scrapPage(url, genre):
             # if the current novel was already crawled before, break from loop
             if (novel["novelId"] == lastNovelId[genre] or novel["novelId"] in scheduled_novels): break
 
-            currentTime = datetime.now()
+            currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
 
             try:
                 novel["title"] = novelData["title"]
