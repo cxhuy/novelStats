@@ -85,7 +85,7 @@ def scrapAllPages():
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
-        novelUrl = "https://novel.naver.com/best/list?novelId=" + str(novel["id"])
+        novelUrl = "https://novel.naver.com/best/list?novelId=" + str(novel["novelId"])
         currentTime = datetime.now()
         novelPage = getSoup(novelUrl)
 
@@ -102,7 +102,7 @@ def checkLater(novel):
         printAndWrite(novel)
 
     except:
-        printAndWrite("ERROR AT " + str(novel["id"]))
+        printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
 
     return schedule.CancelJob
@@ -122,15 +122,15 @@ def scrapPage(url, genre):
         scheduled_novels = []
 
         for job in schedule.jobs[1:]:
-            scheduled_novels.append(job.job_func.args[0]["id"])
+            scheduled_novels.append(job.job_func.args[0]["novelId"])
 
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
-            novel["id"] = int(currentNovel.select_one('a').get('href').split("/best/list?novelId=")[-1])
+            novel["novelId"] = int(currentNovel.select_one('a').get('href').split("/best/list?novelId=")[-1])
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId[genre] or novel["id"] in scheduled_novels): break
+            if (novel["novelId"] == lastNovelId[genre] or novel["novelId"] in scheduled_novels): break
 
             novel["title"] = currentNovel.select_one('a').get('title').strip()
             novel["author"] = currentNovel.find(class_="ellipsis").text.strip()
@@ -138,7 +138,7 @@ def scrapPage(url, genre):
             novel["genre"] = ["로맨스", "로판", "판타지", "현판", "무협", "미스터리", "라이트노벨"][genre]
 
             # try crawling additional information from the novel's individual page
-            novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["id"])
+            novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["novelId"])
             currentTime = datetime.now()
 
             try:
@@ -175,11 +175,11 @@ def scrapPage(url, genre):
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
             except:
-                printAndWrite("ERROR AT " + str(novel["id"]))
+                printAndWrite("ERROR AT " + str(novel["novelId"]))
                 printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["id"]
+        if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)

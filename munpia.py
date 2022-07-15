@@ -87,7 +87,7 @@ def scrapAllPages():
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
-        novelUrl = "https://novel.munpia.com/" + str(novel["id"])
+        novelUrl = "https://novel.munpia.com/" + str(novel["novelId"])
         currentTime = datetime.now()
         novelPage = getSoup(novelUrl)
 
@@ -121,7 +121,7 @@ def checkLater(novel):
         printAndWrite(novel)
 
     except:
-        printAndWrite("ERROR AT " + str(novel["id"]))
+        printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
 
     return schedule.CancelJob
@@ -141,22 +141,22 @@ def scrapPage(url, pricing):
         scheduled_novels = []
 
         for job in schedule.jobs[1:]:
-            scheduled_novels.append(job.job_func.args[0]["id"])
+            scheduled_novels.append(job.job_func.args[0]["novelId"])
 
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
             novel["pricing"] = ["무료 작가연재", "무료 일반연재", "유료 연재작"][pricing]
-            novel["id"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
+            novel["novelId"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId[pricing] or novel["id"] in scheduled_novels): break
+            if (novel["novelId"] == lastNovelId[pricing] or novel["novelId"] in scheduled_novels): break
 
             novel["title"] = currentNovel.find(class_="title").text.strip()
             novel["author"] = currentNovel.find(class_="author").text.strip()
 
             # try crawling additional information from the novel's individual page
-            novelUrl = 'https://novel.munpia.com/' + str(novel["id"])
+            novelUrl = 'https://novel.munpia.com/' + str(novel["novelId"])
             currentTime = datetime.now()
 
             try:
@@ -176,7 +176,7 @@ def scrapPage(url, pricing):
 
                 novel["registration"] = datetime.strptime(novelTime[0].text, "%Y.%m.%d %H:%M")
                 # novel["latest_chapter"] = datetime.strptime(novelTime[1].text, "%Y.%m.%d %H:%M")
-                # 
+                #
                 # if ((currentTime - novel["latest_chapter"]).total_seconds() > 120): continue
 
                 novelDetails = novelDetails.select('dl')[-1].select('dd')
@@ -207,11 +207,11 @@ def scrapPage(url, pricing):
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
             except:
-                printAndWrite("ERROR AT " + str(novel["id"]))
+                printAndWrite("ERROR AT " + str(novel["novelId"]))
                 printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["id"]
+        if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["novelId"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)

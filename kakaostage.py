@@ -79,7 +79,7 @@ def scrapAllPages():
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
-        novelUrl = 'https://api-pagestage.kakao.com/novels/' + str(novel["id"])
+        novelUrl = 'https://api-pagestage.kakao.com/novels/' + str(novel["novelId"])
         currentTime = datetime.now()
         novelData = json.loads(getSoup(novelUrl).text)
 
@@ -91,7 +91,7 @@ def checkLater(novel):
         printAndWrite(novel)
 
     except:
-        printAndWrite("ERROR AT " + str(novel["id"]))
+        printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
 
     return schedule.CancelJob
@@ -111,16 +111,16 @@ def scrapPage(url, genre):
         scheduled_novels = []
 
         for job in schedule.jobs[1:]:
-            scheduled_novels.append(job.job_func.args[0]["id"])
+            scheduled_novels.append(job.job_func.args[0]["novelId"])
 
         for novelData in novelList:
             novel = {}
 
             novel["genre"] = ["판타지", "현판", "무협", "로맨스", "로판", "BL", "자유"][genre]
-            novel["id"] = novelData["stageSeriesNumber"]
+            novel["novelId"] = novelData["stageSeriesNumber"]
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId[genre] or novel["id"] in scheduled_novels): break
+            if (novel["novelId"] == lastNovelId[genre] or novel["novelId"] in scheduled_novels): break
 
             currentTime = datetime.now()
 
@@ -162,11 +162,11 @@ def scrapPage(url, genre):
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
             except:
-                printAndWrite("ERROR AT " + str(novel["id"]))
+                printAndWrite("ERROR AT " + str(novel["novelId"]))
                 printAndWrite(traceback.format_exc())
 
         # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["id"]
+        if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)
