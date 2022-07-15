@@ -121,7 +121,7 @@ def scrapPage(url, genre):
             # if the current novel was already crawled before, break from loop
             if (novel["novelId"] == lastNovelId[genre] or novel["novelId"] in scheduled_novels): break
 
-            currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
+            currentTime = datetime.now()
 
             try:
                 novel["title"] = novelData["title"]
@@ -143,7 +143,7 @@ def scrapPage(url, genre):
                 novel["monopoly"] = None
                 novel["age_restriction"] = novelData["age_grade"]
 
-                novel["start_time"] = currentTime
+                novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
                 novel["end_time"] = -1
 
                 novel["keywords"] = extractKeywords(novel["title"])

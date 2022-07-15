@@ -139,7 +139,7 @@ def scrapPage(url, genre):
 
             # try crawling additional information from the novel's individual page
             novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["novelId"])
-            currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
+            currentTime = datetime.now()
 
             try:
                 novelPage = getSoup(novelUrl)
@@ -162,7 +162,7 @@ def scrapPage(url, genre):
                 novel["start_total_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
                 novel["end_total_likes"] = -1
 
-                novel["start_time"] = currentTime
+                novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
                 novel["end_time"] = -1
 
                 novel["keywords"] = extractKeywords(novel["title"])

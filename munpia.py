@@ -157,7 +157,7 @@ def scrapPage(url, pricing):
 
             # try crawling additional information from the novel's individual page
             novelUrl = 'https://novel.munpia.com/' + str(novel["novelId"])
-            currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
+            currentTime = datetime.now()
 
             try:
                 novelDetails = getSoup(novelUrl).find(class_="detail-box")
@@ -188,7 +188,7 @@ def scrapPage(url, pricing):
                 novel["end_total_views"] = -1
                 novel["start_total_likes"] = extractVal(novelDetails[2].text)
                 novel["end_total_likes"] = -1
-                novel["start_time"] = currentTime
+                novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
                 novel["end_time"] = -1
                 novel["male"] = -1
                 novel["female"] = -1
