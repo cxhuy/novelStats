@@ -139,6 +139,7 @@ def scrapPage(url, genre):
                 novel["chapters"] = novelData["publishedEpisodeCount"]
 
                 novel["avg_characters"] = novelData["avgBodySize"]
+                novel["total_characters"] = int(novelData["avgBodySize"] * novelData["chapters"])
 
                 novel["start_total_likes"] = novelData["episodeLikeCount"]
                 novel["end_total_likes"] = -1
@@ -158,7 +159,7 @@ def scrapPage(url, genre):
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=10)
+                laterTime = currentTime + timedelta(hours=1)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 

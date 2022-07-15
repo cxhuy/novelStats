@@ -177,8 +177,8 @@ def scrapPage(url, pricing):
                 novelDetails = novelDetails.select('dl')[-1].select('dd')
 
                 novel["chapters"] = extractVal(novelDetails[0].text)
-                novel["characters"] = extractVal(novelDetails[3].text)
-                novel["avg_characters"] = float(novel["characters"] / novel["chapters"])
+                novel["total_characters"] = extractVal(novelDetails[3].text)
+                # novel["avg_characters"] = float(novel["characters"] / novel["chapters"])
                 novel["start_total_views"] = extractVal(novelDetails[1].text)
                 novel["end_total_views"] = -1
                 novel["start_total_likes"] = extractVal(novelDetails[2].text)
