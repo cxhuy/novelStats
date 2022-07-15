@@ -161,7 +161,7 @@ def scrapPage(url, pricing):
 
             try:
                 novelDetails = getSoup(novelUrl).find(class_="detail-box")
-                novel["genre"] = novelDetails.find(class_="meta-path").find('strong').text.replace(' ', '').split(',')
+                novel["genres"] = novelDetails.find(class_="meta-path").find('strong').text.replace(' ', '').split(',')
 
                 try:
                     novel["monopoly"] = novelDetails.select_one('a').find('span').text.strip()

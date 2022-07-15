@@ -135,7 +135,7 @@ def scrapPage(url, genre):
             novel["title"] = currentNovel.select_one('a').get('title').strip()
             novel["author"] = currentNovel.find(class_="ellipsis").text.strip()
             novel["chapters"] = extractVal(currentNovel.find(class_="num_total").text.strip())
-            novel["genre"] = ["로맨스", "로판", "판타지", "현판", "무협", "미스터리", "라이트노벨"][genre]
+            novel["genres"] = ["로맨스", "로판", "판타지", "현판", "무협", "미스터리", "라이트노벨"][genre]
 
             # try crawling additional information from the novel's individual page
             novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["novelId"])

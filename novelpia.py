@@ -146,7 +146,7 @@ def scrapPage(url, pricing):
                     else:
                         tags.append(tag)
 
-                novel["genre"] = genre
+                novel["genres"] = genre
                 novel["tags"] = tags
 
                 novel["monopoly"] = "독점" if novelPage.find(class_="b_mono") is not None else "비독점"

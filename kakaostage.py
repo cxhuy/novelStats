@@ -116,7 +116,7 @@ def scrapPage(url, genre):
         for novelData in novelList:
             novel = {}
 
-            novel["genre"] = ["판타지", "현판", "무협", "로맨스", "로판", "BL", "자유"][genre]
+            novel["genres"] = ["판타지", "현판", "무협", "로맨스", "로판", "BL", "자유"][genre]
             novel["novelId"] = novelData["stageSeriesNumber"]
 
             # if the current novel was already crawled before, break from loop
