@@ -127,6 +127,7 @@ def scrapPage(url, genre):
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
+            novel["platform"] = "navernovel"
             novel["novelId"] = int(currentNovel.select_one('a').get('href').split("/best/list?novelId=")[-1])
 
             # if the current novel was already crawled before, break from loop

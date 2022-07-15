@@ -146,6 +146,7 @@ def scrapPage(url, pricing):
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
+            novel["platform"] = "munpia"
             novel["pricing"] = ["무료 작가연재", "무료 일반연재", "유료 연재작"][pricing]
             novel["novelId"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
 

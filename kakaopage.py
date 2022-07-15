@@ -115,6 +115,7 @@ def scrapPage(url, genre):
         for novelData in novelList:
             novel = {}
 
+            novel["platform"] = "kakaopage"
             novel["genres"] = ["판타지", "현판", "로맨스", "로판", "무협", "판드", "BL"][genre]
             novel["novelId"] = novelData["series_id"]
 
