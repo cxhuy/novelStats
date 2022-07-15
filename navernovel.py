@@ -119,13 +119,18 @@ def scrapPage(url, genre):
         initialRun[genre] = False
 
     else:
+        scheduled_novels = []
+
+        for job in schedule.jobs[1:]:
+            scheduled_novels.append(job.job_func.args[0]["id"])
+
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
             novel["id"] = int(currentNovel.select_one('a').get('href').split("/best/list?novelId=")[-1])
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId[genre]): break
+            if (novel["id"] == lastNovelId[genre] or novel["id"] in scheduled_novels): break
 
             novel["title"] = currentNovel.select_one('a').get('title').strip()
             novel["author"] = currentNovel.find(class_="ellipsis").text.strip()

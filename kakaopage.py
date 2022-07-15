@@ -112,8 +112,6 @@ def scrapPage(url, genre):
         for job in schedule.jobs[1:]:
             scheduled_novels.append(job.job_func.args[0]["id"])
 
-        # print(scheduled_novels)
-
         for novelData in novelList:
             novel = {}
 

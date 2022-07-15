@@ -138,6 +138,11 @@ def scrapPage(url, pricing):
         initialRun[pricing] = False
 
     else:
+        scheduled_novels = []
+
+        for job in schedule.jobs[1:]:
+            scheduled_novels.append(job.job_func.args[0]["id"])
+
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
@@ -145,7 +150,7 @@ def scrapPage(url, pricing):
             novel["id"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
 
             # if the current novel was already crawled before, break from loop
-            if (novel["id"] == lastNovelId[pricing]): break
+            if (novel["id"] == lastNovelId[pricing] or novel["id"] in scheduled_novels): break
 
             novel["title"] = currentNovel.find(class_="title").text.strip()
             novel["author"] = currentNovel.find(class_="author").text.strip()
@@ -170,9 +175,9 @@ def scrapPage(url, pricing):
                 novelTime = novelDetails.select('dl')[-2].select('dd')
 
                 novel["registration"] = datetime.strptime(novelTime[0].text, "%Y.%m.%d %H:%M")
-                novel["latest_chapter"] = datetime.strptime(novelTime[1].text, "%Y.%m.%d %H:%M")
-
-                if ((currentTime - novel["latest_chapter"]).total_seconds() > 120): continue
+                # novel["latest_chapter"] = datetime.strptime(novelTime[1].text, "%Y.%m.%d %H:%M")
+                # 
+                # if ((currentTime - novel["latest_chapter"]).total_seconds() > 120): continue
 
                 novelDetails = novelDetails.select('dl')[-1].select('dd')
 

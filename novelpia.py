@@ -117,8 +117,6 @@ def scrapPage(url, pricing):
         for job in schedule.jobs[1:]:
             scheduled_novels.append(job.job_func.args[0]["id"])
 
-        # print(scheduled_novels)
-
         for i in range(len(novelList)):
             novel = {}
             currentNovel = novelList[i]
