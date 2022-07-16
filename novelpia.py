@@ -90,13 +90,13 @@ def storeNovel(novel):
 
     if "tags" in novel:
         sql = "insert into tags (novelInstanceId, tag) values (" + str(lastNovelInstanceId) + ", %s)"
-        cur.executemany(sql, novel["tags"])
+        cur.executemany(sql, conn.escape_string(novel["tags"]))
 
     sql = "insert into keywords (novelInstanceId, keyword) values (" + str(lastNovelInstanceId) + ", %s)"
-    cur.executemany(sql, novel["keywords"])
+    cur.executemany(sql, conn.escape_string(novel["keywords"]))
 
     sql = "insert into genres (novelInstanceId, genre) values (" + str(lastNovelInstanceId) + ", %s)"
-    cur.executemany(sql, novel["genres"])
+    cur.executemany(sql, conn.escape_string(novel["genres"]))
 
     conn.commit()
 

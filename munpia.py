@@ -22,12 +22,25 @@
 # latest_chapter 마지막 회차 업로드일
 # characters 총 글자수
 
-import requests, schedule, time, traceback
+import requests, schedule, time, traceback, os, pymysql
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
+from dotenv import load_dotenv
 
 f = open("logs/munpia/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
+
+load_dotenv()
+
+conn = pymysql.connect(
+    host=os.environ.get('dbhost'),
+    user=os.environ.get('dbuser'),
+    password=os.environ.get('dbpassword'),
+    db=os.environ.get('dbname'),
+    charset='utf8'
+)
+
+cur = conn.cursor()
 
 okt = Okt()
 hannanum = Hannanum()
@@ -84,6 +97,30 @@ def scrapAllPages():
     scrapPage("https://novel.munpia.com/page/novelous/group/pl.serial/gpage/1", 2)  # 유료 연재작
     printAndWrite("\n[Old Novels]")
 
+def storeNovel(novel):
+    keys = list(novel.keys())
+    novelDataKeys = list(filter(lambda key: key not in ['genres', 'keywords', 'tags'], keys))
+    novelDataValues = list(
+        map(lambda key: "\'" + conn.escape_string(novel[key]) + "\'" if type(novel[key]) == str else str(novel[key]), novelDataKeys))
+
+    sql = "insert into novelData (" + ", ".join(novelDataKeys) + ") values (" + ", ".join(novelDataValues) + ")"
+
+    cur.execute(sql)
+
+    lastNovelInstanceId = cur.lastrowid
+
+    if "tags" in novel:
+        sql = "insert into tags (novelInstanceId, tag) values (" + str(lastNovelInstanceId) + ", %s)"
+        cur.executemany(sql, conn.escape_string(novel["tags"]))
+
+    sql = "insert into keywords (novelInstanceId, keyword) values (" + str(lastNovelInstanceId) + ", %s)"
+    cur.executemany(sql, conn.escape_string(novel["keywords"]))
+
+    sql = "insert into genres (novelInstanceId, genre) values (" + str(lastNovelInstanceId) + ", %s)"
+    cur.executemany(sql, conn.escape_string(novel["genres"]))
+
+    conn.commit()
+
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
@@ -124,6 +161,7 @@ def checkLater(novel):
         printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
 
+    storeNovel(novel)
     return schedule.CancelJob
 
 # refreshes every minute checking for newly uploaded novels
@@ -203,7 +241,7 @@ def scrapPage(url, pricing):
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=10)
+                laterTime = currentTime + timedelta(minutes=70)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
