@@ -78,9 +78,9 @@ def getScriptNumber(script, idx):
 def extractKeywords(title):
     keywords = []
     for noun in hannanum.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     for noun in okt.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     return keywords
 
 # prints and writes toPrint
@@ -111,13 +111,13 @@ def storeNovel(novel):
 
     if "tags" in novel:
         sql = "insert into tags (novelInstanceId, tag) values (" + str(lastNovelInstanceId) + ", %s)"
-        cur.executemany(sql, conn.escape_string(novel["tags"]))
+        cur.executemany(sql, novel["tags"])
 
     sql = "insert into keywords (novelInstanceId, keyword) values (" + str(lastNovelInstanceId) + ", %s)"
-    cur.executemany(sql, conn.escape_string(novel["keywords"]))
+    cur.executemany(sql, novel["keywords"])
 
     sql = "insert into genres (novelInstanceId, genre) values (" + str(lastNovelInstanceId) + ", %s)"
-    cur.executemany(sql, conn.escape_string(novel["genres"]))
+    cur.executemany(sql, novel["genres"])
 
     conn.commit()
 
@@ -132,7 +132,7 @@ def checkLater(novel):
             novelTagList = novelPage.find(class_="story-box").find(class_="tag-list").select('a')
             novelTags = []
             for tag in novelTagList:
-                novelTags.append(tag.text.strip().replace('#', ''))
+                novelTags.append(conn.escape_string(tag.text.strip().replace('#', '')))
             novel["tags"] = novelTags
 
         except:
