@@ -1,13 +1,26 @@
-import requests, schedule, time, traceback, json
+import requests, schedule, time, traceback, json, os, pymysql, random
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
+from dotenv import load_dotenv
 
 headers = {
     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
 }
 
 f = open("logs/kakaopage/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
+
+load_dotenv()
+
+conn = pymysql.connect(
+    host=os.environ.get('dbhost'),
+    user=os.environ.get('dbuser'),
+    password=os.environ.get('dbpassword'),
+    db=os.environ.get('dbname'),
+    charset='utf8'
+)
+
+cur = conn.cursor()
 
 okt = Okt()
 hannanum = Hannanum()
@@ -31,9 +44,9 @@ def extractVal(val):
 def extractKeywords(title):
     keywords = []
     for noun in hannanum.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     for noun in okt.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     return keywords
 
 # prints and writes toPrint
@@ -57,18 +70,43 @@ def deleteDQ(anno):
 def scrapAllPages():
     printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=86&page=0", 0) # 판타지
-    time.sleep(2)
+    # time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=120&page=0", 1) # 현판
-    time.sleep(2)
+    # time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=89&page=0", 2) # 로맨스
-    time.sleep(2)
+    # time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=117&page=0", 3) # 로판
-    time.sleep(2)
+    # time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=87&page=0", 4) # 무협
-    time.sleep(2)
+    # time.sleep(2)
     # scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=1113&page=0", 5) # 판드
     # scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=1112&page=0", 6) # BL
     printAndWrite("\n[Old Novels]")
+
+# store novel data in db
+def storeNovel(novel):
+    keys = list(novel.keys())
+    novelDataKeys = list(filter(lambda key: key not in ['genres', 'keywords', 'tags'], keys))
+    novelDataValues = list(
+        map(lambda key: "\'" + conn.escape_string(novel[key]) + "\'" if type(novel[key]) == str else str(novel[key]), novelDataKeys))
+
+    sql = "insert into novelData (" + ", ".join(novelDataKeys) + ") values (" + ", ".join(novelDataValues) + ")"
+
+    cur.execute(sql)
+
+    lastNovelInstanceId = cur.lastrowid
+
+    if "tags" in novel:
+        sql = "insert into tags (novelInstanceId, tag) values (" + str(lastNovelInstanceId) + ", %s)"
+        cur.executemany(sql, novel["tags"])
+
+    sql = "insert into keywords (novelInstanceId, keyword) values (" + str(lastNovelInstanceId) + ", %s)"
+    cur.executemany(sql, novel["keywords"])
+
+    sql = "insert into genres (novelInstanceId, genre) values (" + str(lastNovelInstanceId) + ", %s)"
+    cur.executemany(sql, novel["genres"])
+
+    conn.commit()
 
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
@@ -87,11 +125,15 @@ def checkLater(novel):
             novel["monopoly"] = "비독점"
         novel["end_time"] = currentTime
 
+        storeNovel(novel)
         printAndWrite(novel)
 
     except:
         printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
+
+    storeNovel(novel)
+    time.sleep(random.uniform(0.1, 0.5))
 
     return schedule.CancelJob
 
@@ -139,9 +181,9 @@ def scrapPage(url, genre):
                 novel["start_total_comments"] = novelData["comment_count"]
                 novel["end_total_comments"] = -1
 
-                novel["on_issue"] = novelData["on_issue"]
+                novel["on_issue"] = True if novelData["on_issue"] == 'Y' else False
 
-                novel["monopoly"] = None
+                novel["monopoly"] = ""
                 novel["age_restriction"] = novelData["age_grade"]
 
                 novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
@@ -152,7 +194,7 @@ def scrapPage(url, genre):
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(hours=1)
+                laterTime = currentTime + timedelta(minutes=70)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
@@ -160,17 +202,20 @@ def scrapPage(url, genre):
                 printAndWrite("ERROR AT " + str(novel["novelId"]))
                 printAndWrite(traceback.format_exc())
 
+            time.sleep(random.uniform(0.1, 0.5))
+
         # if there were new novels, update last novel id to the most recently uploaded novel's id
         if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)
 
-printAndWrite("started script at " + str(datetime.now()) + "\n")
+def startKakaopageCrawling():
+    printAndWrite("started script at " + str(datetime.now()) + "\n")
 
-# run function scrapAllPages every minute
-schedule.every().minute.at(":00").do(scrapAllPages)
+    # run function scrapAllPages every minute
+    schedule.every().minute.at(":00").do(scrapAllPages)
 
-while True:
-    schedule.run_pending()
-    time.sleep(0.25)
+    while True:
+        schedule.run_pending()
+        time.sleep(0.25)

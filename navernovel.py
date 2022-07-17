@@ -1,26 +1,26 @@
-# 모든 플랫폼이 갖고 있는 데이터
-# id 작품 아이디
-# title 작품 제목
-# author 작가
-# genre 장르 (로맨스, 로판, 판타지, 현판, 무협, 미스터리, 라이트노벨)
-# time 크롤링 시작, 종료 시간
-# keywords 제목 키워드
-# chapters 회차수
-
-# 몇몇 플랫폼과 공유하고 있는 데이터
-# total_likes 전체 추천수
-
-# 해당 플랫폼에 유니크한 데이터
-# recent_views 최신화 조회수
-# recent_comments 최신화 댓글수
-# reviews 리뷰수
-
-import requests, schedule, time, traceback
+import requests, schedule, time, traceback, os, pymysql, random
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
+from dotenv import load_dotenv
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
+}
 
 f = open("logs/navernovel/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
+
+load_dotenv()
+
+conn = pymysql.connect(
+    host=os.environ.get('dbhost'),
+    user=os.environ.get('dbuser'),
+    password=os.environ.get('dbpassword'),
+    db=os.environ.get('dbname'),
+    charset='utf8'
+)
+
+cur = conn.cursor()
 
 okt = Okt()
 hannanum = Hannanum()
@@ -31,7 +31,7 @@ initialRun = [True, True, True, True, True, True, True]
 
 # function for getting soup of input url
 def getSoup(url):
-    response = requests.get(url)
+    response = requests.get(url, headers=headers)
     assert response.status_code == 200, response.status_code
     html = response.text
     soup = BeautifulSoup(html, 'html.parser')
@@ -59,9 +59,9 @@ def getScriptNumber(script, idx):
 def extractKeywords(title):
     keywords = []
     for noun in hannanum.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     for noun in okt.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     return keywords
 
 # prints and writes toPrint
@@ -81,6 +81,31 @@ def scrapAllPages():
     scrapPage("https://novel.naver.com/best/genre?genre=104", 5) # 미스터리
     scrapPage("https://novel.naver.com/best/genre?genre=106", 6) # 라이트노벨
     printAndWrite("\n[Old Novels]")
+
+# store novel data in db
+def storeNovel(novel):
+    keys = list(novel.keys())
+    novelDataKeys = list(filter(lambda key: key not in ['genres', 'keywords', 'tags'], keys))
+    novelDataValues = list(
+        map(lambda key: "\'" + conn.escape_string(novel[key]) + "\'" if type(novel[key]) == str else str(novel[key]), novelDataKeys))
+
+    sql = "insert into novelData (" + ", ".join(novelDataKeys) + ") values (" + ", ".join(novelDataValues) + ")"
+
+    cur.execute(sql)
+
+    lastNovelInstanceId = cur.lastrowid
+
+    if "tags" in novel:
+        sql = "insert into tags (novelInstanceId, tag) values (" + str(lastNovelInstanceId) + ", %s)"
+        cur.executemany(sql, novel["tags"])
+
+    sql = "insert into keywords (novelInstanceId, keyword) values (" + str(lastNovelInstanceId) + ", %s)"
+    cur.executemany(sql, novel["keywords"])
+
+    sql = "insert into genres (novelInstanceId, genre) values (" + str(lastNovelInstanceId) + ", %s)"
+    cur.executemany(sql, novel["genres"])
+
+    conn.commit()
 
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
@@ -104,6 +129,9 @@ def checkLater(novel):
     except:
         printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
+
+    storeNovel(novel)
+    time.sleep(random.uniform(0.1, 0.5))
 
     return schedule.CancelJob
 
@@ -171,7 +199,7 @@ def scrapPage(url, genre):
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=3)
+                laterTime = currentTime + timedelta(minutes=70)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
@@ -179,17 +207,20 @@ def scrapPage(url, genre):
                 printAndWrite("ERROR AT " + str(novel["novelId"]))
                 printAndWrite(traceback.format_exc())
 
+            time.sleep(random.uniform(0.1, 0.5))
+
         # if there were new novels, update last novel id to the most recently uploaded novel's id
         if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)
 
-printAndWrite("started script at " + str(datetime.now()) + "\n")
+def startNavernovelCrawling():
+    printAndWrite("started script at " + str(datetime.now()) + "\n")
 
-# run function printNewNovels every minute
-schedule.every().minute.at(":00").do(scrapAllPages)
+    # run function printNewNovels every minute
+    schedule.every().minute.at(":00").do(scrapAllPages)
 
-while True:
-    schedule.run_pending()
-    time.sleep(0.25)
+    while True:
+        schedule.run_pending()
+        time.sleep(0.25)

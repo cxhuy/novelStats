@@ -1,4 +1,4 @@
-import requests, schedule, time, traceback, os, pymysql
+import requests, schedule, time, traceback, os, pymysql, random
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
@@ -58,9 +58,9 @@ def getScriptNumber(script, idx):
 def extractKeywords(title):
     keywords = []
     for noun in hannanum.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     for noun in okt.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     return keywords
 
 # prints and writes toPrint
@@ -76,6 +76,7 @@ def scrapAllPages():
     scrapPage("https://novelpia.com/plus/all/date/1/?main_genre=", 1)          # 플러스
     printAndWrite("\n[Old Novels]")
 
+# store novel data in db
 def storeNovel(novel):
     keys = list(novel.keys())
     novelDataKeys = list(filter(lambda key: key not in ['genres', 'keywords', 'tags'], keys))
@@ -90,13 +91,13 @@ def storeNovel(novel):
 
     if "tags" in novel:
         sql = "insert into tags (novelInstanceId, tag) values (" + str(lastNovelInstanceId) + ", %s)"
-        cur.executemany(sql, conn.escape_string(novel["tags"]))
+        cur.executemany(sql, novel["tags"])
 
     sql = "insert into keywords (novelInstanceId, keyword) values (" + str(lastNovelInstanceId) + ", %s)"
-    cur.executemany(sql, conn.escape_string(novel["keywords"]))
+    cur.executemany(sql, novel["keywords"])
 
     sql = "insert into genres (novelInstanceId, genre) values (" + str(lastNovelInstanceId) + ", %s)"
-    cur.executemany(sql, conn.escape_string(novel["genres"]))
+    cur.executemany(sql, novel["genres"])
 
     conn.commit()
 
@@ -136,6 +137,8 @@ def checkLater(novel):
         printAndWrite(traceback.format_exc())
 
     storeNovel(novel)
+    time.sleep(random.uniform(0.1, 0.5))
+
     return schedule.CancelJob
 
 # refreshes every minute checking for newly uploaded novels
@@ -183,7 +186,7 @@ def scrapPage(url, pricing):
                     if tag in ["판타지", "무협", "현대", "로맨스", "현대판타지", "라이트노벨", "공포", "SF", "스포츠", "대체역사", "기타", "패러디"]:
                         genre.append(tag)
                     else:
-                        tags.append(tag)
+                        tags.append(conn.escape_string(tag))
 
                 novel["genres"] = genre
                 novel["tags"] = tags
@@ -218,17 +221,20 @@ def scrapPage(url, pricing):
                 printAndWrite("ERROR AT " + str(novel["novelId"]))
                 printAndWrite(traceback.format_exc())
 
+            time.sleep(random.uniform(0.1, 0.5))
+
         # if there were new novels, update last novel id to the most recently uploaded novel's id
         if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["novelId"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)
 
-printAndWrite("started script at " + str(datetime.now()) + "\n")
+def startNovelpiaCrawling():
+    printAndWrite("started script at " + str(datetime.now()) + "\n")
 
-# run function scrapAllPages every minute
-schedule.every().minute.at(":00").do(scrapAllPages)
+    # run function scrapAllPages every minute
+    schedule.every().minute.at(":00").do(scrapAllPages)
 
-while True:
-    schedule.run_pending()
-    time.sleep(0.25)
+    while True:
+        schedule.run_pending()
+        time.sleep(0.25)

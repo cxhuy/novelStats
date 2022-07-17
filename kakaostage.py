@@ -1,10 +1,22 @@
-import requests, schedule, time, traceback, json
-from requests_html import HTMLSession
+import requests, schedule, time, traceback, json, os, pymysql, random
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
+from dotenv import load_dotenv
 
 f = open("logs/kakaostage/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
+
+load_dotenv()
+
+conn = pymysql.connect(
+    host=os.environ.get('dbhost'),
+    user=os.environ.get('dbuser'),
+    password=os.environ.get('dbpassword'),
+    db=os.environ.get('dbname'),
+    charset='utf8'
+)
+
+cur = conn.cursor()
 
 okt = Okt()
 hannanum = Hannanum()
@@ -21,15 +33,15 @@ def getSoup(url):
     return soup
 
 # function for getting javascript rendered html of input url
-def getRenderedHtml(url):
-    session = HTMLSession()
-    response = session.get(url)
-
-    assert response.status_code == 200, response.status_code
-
-    response.html.render()
-
-    return response.html
+# def getRenderedHtml(url):
+#     session = HTMLSession()
+#     response = session.get(url)
+#
+#     assert response.status_code == 200, response.status_code
+#
+#     response.html.render()
+#
+#     return response.html
 
 # extracts numbers from string
 def extractVal(val):
@@ -53,9 +65,9 @@ def getScriptNumber(script, idx):
 def extractKeywords(title):
     keywords = []
     for noun in hannanum.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     for noun in okt.nouns(title):
-        if noun not in keywords: keywords.append(noun)
+        if noun not in keywords: keywords.append(conn.escape_string(noun))
     return keywords
 
 # prints and writes toPrint
@@ -76,6 +88,31 @@ def scrapAllPages():
     scrapPage("https://api-pagestage.kakao.com/novels/genres/7?subGenreIds=7&page=0&size=20&sort=latestPublishedAt,desc&sort=id,desc&adult=false", 6) # 자유
     printAndWrite("\n[Old Novels]")
 
+# store novel data in db
+def storeNovel(novel):
+    keys = list(novel.keys())
+    novelDataKeys = list(filter(lambda key: key not in ['genres', 'keywords', 'tags'], keys))
+    novelDataValues = list(
+        map(lambda key: "\'" + conn.escape_string(novel[key]) + "\'" if type(novel[key]) == str else str(novel[key]), novelDataKeys))
+
+    sql = "insert into novelData (" + ", ".join(novelDataKeys) + ") values (" + ", ".join(novelDataValues) + ")"
+
+    cur.execute(sql)
+
+    lastNovelInstanceId = cur.lastrowid
+
+    if "tags" in novel:
+        sql = "insert into tags (novelInstanceId, tag) values (" + str(lastNovelInstanceId) + ", %s)"
+        cur.executemany(sql, novel["tags"])
+
+    sql = "insert into keywords (novelInstanceId, keyword) values (" + str(lastNovelInstanceId) + ", %s)"
+    cur.executemany(sql, novel["keywords"])
+
+    sql = "insert into genres (novelInstanceId, genre) values (" + str(lastNovelInstanceId) + ", %s)"
+    cur.executemany(sql, novel["genres"])
+
+    conn.commit()
+
 # puts input novel on a waitlist to fetch end data later
 def checkLater(novel):
     try:
@@ -93,6 +130,9 @@ def checkLater(novel):
     except:
         printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
+
+    storeNovel(novel)
+    time.sleep(random.uniform(0.1, 0.5))
 
     return schedule.CancelJob
 
@@ -137,18 +177,18 @@ def scrapPage(url, genre):
 
                 novel["chapters"] = novelData["publishedEpisodeCount"]
 
-                novel["avg_characters"] = novelData["avgBodySize"]
-                novel["total_characters"] = int(novelData["avgBodySize"] * novelData["chapters"])
+                # novel["avg_characters"] = novelData["avgBodySize"]
+                novel["total_characters"] = int(novelData["avgBodySize"] * novel["chapters"])
 
                 novel["start_total_likes"] = novelData["episodeLikeCount"]
                 novel["end_total_likes"] = -1
 
                 novel["registration"] = datetime.strptime(novelData["firstPublishedAt"], '%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S.000')
 
-                novel["stageOn"] = novelData["stageOn"]
-                novel["pageGo"] = novelData["pageGo"]
+                novel["stage_on"] = novelData["stageOn"]
+                novel["page_go"] = novelData["pageGo"]
                 novel["monopoly"] = "독점" if novelData["onlyStage"] else "비독점"
-                novel["age_restriction"] = "15" if novelData["ageRating"] == "FIFTEEN" else "ALL"
+                novel["age_restriction"] = 15 if novelData["ageRating"] == "FIFTEEN" else 0
 
                 novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
                 novel["end_time"] = -1
@@ -158,7 +198,7 @@ def scrapPage(url, genre):
                 newNovels.append(novel)
 
                 # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(hours=1)
+                laterTime = currentTime + timedelta(minutes=70)
                 laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                 schedule.every().day.at(laterTime).do(checkLater, novel)
 
@@ -166,17 +206,20 @@ def scrapPage(url, genre):
                 printAndWrite("ERROR AT " + str(novel["novelId"]))
                 printAndWrite(traceback.format_exc())
 
+            time.sleep(random.uniform(0.1, 0.5))
+
         # if there were new novels, update last novel id to the most recently uploaded novel's id
         if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
 
     for novelToPrint in newNovels:
         printAndWrite(novelToPrint)
 
-printAndWrite("started script at " + str(datetime.now()) + "\n")
+def startKakaostageCrawling():
+    printAndWrite("started script at " + str(datetime.now()) + "\n")
 
-# run function scrapAllPages every minute
-schedule.every().minute.at(":00").do(scrapAllPages)
+    # run function scrapAllPages every minute
+    schedule.every().minute.at(":00").do(scrapAllPages)
 
-while True:
-    schedule.run_pending()
-    time.sleep(0.25)
+    while True:
+        schedule.run_pending()
+        time.sleep(0.25)
