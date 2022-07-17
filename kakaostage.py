@@ -117,19 +117,20 @@ def storeNovel(novel):
 def checkLater(novel):
     try:
         novelUrl = 'https://api-pagestage.kakao.com/novels/' + str(novel["novelId"])
-        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
         novelData = json.loads(getSoup(novelUrl).text)
 
         novel["end_favs"] = novelData["favoriteCount"]
         novel["end_total_views"] = novelData["viewCount"]
         novel["end_total_likes"] = novelData["episodeLikeCount"]
-        novel["end_time"] = currentTime
 
         printAndWrite(novel)
 
     except:
         printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
+
+    currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
+    novel["end_time"] = currentTime
 
     storeNovel(novel)
     time.sleep(random.uniform(0.1, 0.5))

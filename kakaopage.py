@@ -112,7 +112,6 @@ def storeNovel(novel):
 def checkLater(novel):
     try:
         novelUrl = "https://page.kakao.com/home?seriesId=" + str(novel["novelId"])
-        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
         novelData = json.loads(getSoup(novelUrl).find(id="__NEXT_DATA__").text)["props"]["initialState"]["series"]["series"]
 
         novel["chapters"] = novelData["onSaleCount"]
@@ -123,7 +122,6 @@ def checkLater(novel):
             novel["monopoly"] = "독점" if novelData["servicePropertyList"][0]["name"] == "독점" else "비독점"
         except:
             novel["monopoly"] = "비독점"
-        novel["end_time"] = currentTime
 
         storeNovel(novel)
         printAndWrite(novel)
@@ -131,6 +129,9 @@ def checkLater(novel):
     except:
         printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
+
+    currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
+    novel["end_time"] = currentTime
 
     storeNovel(novel)
     time.sleep(random.uniform(0.1, 0.5))

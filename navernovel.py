@@ -111,7 +111,6 @@ def storeNovel(novel):
 def checkLater(novel):
     try:
         novelUrl = "https://novel.naver.com/best/list?novelId=" + str(novel["novelId"])
-        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
         novelPage = getSoup(novelUrl)
 
         novel["end_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
@@ -123,12 +122,14 @@ def checkLater(novel):
 
         novel["end_reviews"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
         novel["end_total_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
-        novel["end_time"] = currentTime
         printAndWrite(novel)
 
     except:
         printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
+
+    currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
+    novel["end_time"] = currentTime
 
     storeNovel(novel)
     time.sleep(random.uniform(0.1, 0.5))

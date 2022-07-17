@@ -105,14 +105,12 @@ def storeNovel(novel):
 def checkLater(novel):
     try:
         novelUrl = 'https://novelpia.com/novel/' + str(novel["novelId"])
-        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
         novelPage = getSoup(novelUrl)
 
         novel["end_favs"] = extractVal(novelPage.find(id="like_text").text)
         novel["end_alarm"] = extractVal(novelPage.find(id="alarm_text").text)
         novel["end_total_views"] = extractVal(novelPage.find_all(class_="more_info")[-1].select('span')[0].text.strip())
         novel["end_total_likes"] = extractVal(novelPage.find_all(class_="more_info")[-1].select('span')[2].text.strip())
-        novel["end_time"] = currentTime
 
         recent_coins = 0
         total_coins = 0
@@ -135,6 +133,9 @@ def checkLater(novel):
     except:
         printAndWrite("ERROR AT " + str(novel["novelId"]))
         printAndWrite(traceback.format_exc())
+
+    currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S.000')
+    novel["end_time"] = currentTime
 
     storeNovel(novel)
     time.sleep(random.uniform(0.1, 0.5))
