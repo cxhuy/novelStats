@@ -146,96 +146,101 @@ def checkLater(novel):
 
 # refreshes every minute checking for newly uploaded novels
 def scrapPage(url, pricing):
-    global lastNovelId, initialRun
-    newNovels = []
-    novelList = getSoup(url).find(id="SECTION-LIST").select('li')
+    try:
+        global lastNovelId, initialRun
+        newNovels = []
+        novelList = getSoup(url).find(id="SECTION-LIST").select('li')
 
-    # if this is the first time running the script, don't fetch the novels but update the last novel id
-    if (initialRun[pricing] == True):
-        lastNovelId[pricing] = int(novelList[0].find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
-        initialRun[pricing] = False
+        # if this is the first time running the script, don't fetch the novels but update the last novel id
+        if (initialRun[pricing] == True):
+            lastNovelId[pricing] = int(novelList[0].find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
+            initialRun[pricing] = False
 
-    else:
-        scheduled_novels = []
+        else:
+            scheduled_novels = []
 
-        for job in schedule.jobs[1:]:
-            scheduled_novels.append(job.job_func.args[0]["novelId"])
+            for job in schedule.jobs[1:]:
+                scheduled_novels.append(job.job_func.args[0]["novelId"])
 
-        for i in range(len(novelList)):
-            novel = {}
-            currentNovel = novelList[i]
-            novel["platform"] = "munpia"
-            novel["pricing"] = ["무료 작가연재", "무료 일반연재", "유료 연재작"][pricing]
-            novel["novelId"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
+            for i in range(len(novelList)):
+                novel = {}
+                currentNovel = novelList[i]
+                novel["platform"] = "munpia"
+                novel["pricing"] = ["무료 작가연재", "무료 일반연재", "유료 연재작"][pricing]
+                novel["novelId"] = int(currentNovel.find(class_="title").get('href').split('https://novel.munpia.com/')[-1])
 
-            # if the current novel was already crawled before, break from loop
-            if (novel["novelId"] == lastNovelId[pricing] or novel["novelId"] in scheduled_novels): break
+                # if the current novel was already crawled before, break from loop
+                if (novel["novelId"] == lastNovelId[pricing] or novel["novelId"] in scheduled_novels): break
 
-            novel["title"] = currentNovel.find(class_="title").text.strip()
-            novel["author"] = currentNovel.find(class_="author").text.strip()
+                novel["title"] = currentNovel.find(class_="title").text.strip()
+                novel["author"] = currentNovel.find(class_="author").text.strip()
 
-            # try crawling additional information from the novel's individual page
-            novelUrl = 'https://novel.munpia.com/' + str(novel["novelId"])
-            currentTime = datetime.now()
-
-            try:
-                novelDetails = getSoup(novelUrl).find(class_="detail-box")
-                novel["genres"] = novelDetails.find(class_="meta-path").find('strong').text.replace(' ', '').split(',')
+                # try crawling additional information from the novel's individual page
+                novelUrl = 'https://novel.munpia.com/' + str(novel["novelId"])
+                currentTime = datetime.now()
 
                 try:
-                    novel["monopoly"] = novelDetails.select_one('a').find('span').text.strip()
+                    novelDetails = getSoup(novelUrl).find(class_="detail-box")
+                    novel["genres"] = novelDetails.find(class_="meta-path").find('strong').text.replace(' ', '').split(',')
+
+                    try:
+                        novel["monopoly"] = novelDetails.select_one('a').find('span').text.strip()
+
+                    except:
+                        novel["monopoly"] = "비독점"
+
+                    novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b').text)
+                    novel["end_favs"] = -1
+
+                    novelTime = novelDetails.select('dl')[-2].select('dd')
+
+                    novel["registration"] = datetime.strptime(novelTime[0].text, "%Y.%m.%d %H:%M").strftime('%Y-%m-%d %H:%M:%S.000')
+                    # novel["latest_chapter"] = datetime.strptime(novelTime[1].text, "%Y.%m.%d %H:%M")
+                    #
+                    # if ((currentTime - novel["latest_chapter"]).total_seconds() > 120): continue
+
+                    novelDetails = novelDetails.select('dl')[-1].select('dd')
+
+                    novel["chapters"] = extractVal(novelDetails[0].text)
+                    novel["total_characters"] = extractVal(novelDetails[3].text)
+                    # novel["avg_characters"] = float(novel["characters"] / novel["chapters"])
+                    novel["start_total_views"] = extractVal(novelDetails[1].text)
+                    novel["end_total_views"] = -1
+                    novel["start_total_likes"] = extractVal(novelDetails[2].text)
+                    novel["end_total_likes"] = -1
+                    novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
+                    novel["end_time"] = -1
+                    novel["male"] = -1
+                    novel["female"] = -1
+                    novel["age_10"] = -1
+                    novel["age_20"] = -1
+                    novel["age_30"] = -1
+                    novel["age_40"] = -1
+                    novel["age_50"] = -1
+                    novel["keywords"] = extractKeywords(novel["title"])
+
+                    newNovels.append(novel)
+
+                    # schedule checkLater function for this novel
+                    laterTime = currentTime + timedelta(minutes=70)
+                    laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
+                    schedule.every().day.at(laterTime).do(checkLater, novel)
 
                 except:
-                    novel["monopoly"] = "비독점"
+                    printAndWrite("ERROR AT " + str(novel["novelId"]))
+                    printAndWrite(traceback.format_exc())
 
-                novel["start_favs"] = extractVal(novelDetails.find(class_="trigger-subscribe").find('b').text)
-                novel["end_favs"] = -1
+                time.sleep(random.uniform(0.1, 0.5))
 
-                novelTime = novelDetails.select('dl')[-2].select('dd')
+            # if there were new novels, update last novel id to the most recently uploaded novel's id
+            if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["novelId"]
 
-                novel["registration"] = datetime.strptime(novelTime[0].text, "%Y.%m.%d %H:%M").strftime('%Y-%m-%d %H:%M:%S.000')
-                # novel["latest_chapter"] = datetime.strptime(novelTime[1].text, "%Y.%m.%d %H:%M")
-                #
-                # if ((currentTime - novel["latest_chapter"]).total_seconds() > 120): continue
+        for novelToPrint in newNovels:
+            printAndWrite(novelToPrint)
 
-                novelDetails = novelDetails.select('dl')[-1].select('dd')
-
-                novel["chapters"] = extractVal(novelDetails[0].text)
-                novel["total_characters"] = extractVal(novelDetails[3].text)
-                # novel["avg_characters"] = float(novel["characters"] / novel["chapters"])
-                novel["start_total_views"] = extractVal(novelDetails[1].text)
-                novel["end_total_views"] = -1
-                novel["start_total_likes"] = extractVal(novelDetails[2].text)
-                novel["end_total_likes"] = -1
-                novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
-                novel["end_time"] = -1
-                novel["male"] = -1
-                novel["female"] = -1
-                novel["age_10"] = -1
-                novel["age_20"] = -1
-                novel["age_30"] = -1
-                novel["age_40"] = -1
-                novel["age_50"] = -1
-                novel["keywords"] = extractKeywords(novel["title"])
-
-                newNovels.append(novel)
-
-                # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=70)
-                laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
-                schedule.every().day.at(laterTime).do(checkLater, novel)
-
-            except:
-                printAndWrite("ERROR AT " + str(novel["novelId"]))
-                printAndWrite(traceback.format_exc())
-
-            time.sleep(random.uniform(0.1, 0.5))
-
-        # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["novelId"]
-
-    for novelToPrint in newNovels:
-        printAndWrite(novelToPrint)
+    except:
+        printAndWrite("Failed crawling munpia at " + str(datetime.now()) + "\n")
+        printAndWrite(traceback.format_exc())
 
 def startMunpiaCrawling():
     printAndWrite("started script at " + str(datetime.now()) + "\n")

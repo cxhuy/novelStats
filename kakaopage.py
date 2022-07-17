@@ -123,7 +123,6 @@ def checkLater(novel):
         except:
             novel["monopoly"] = "비독점"
 
-        storeNovel(novel)
         printAndWrite(novel)
 
     except:
@@ -140,76 +139,81 @@ def checkLater(novel):
 
 # refreshes every minute checking for newly uploaded novels
 def scrapPage(url, genre):
-    global lastNovelId, initialRun
-    newNovels = []
-    novelList = json.loads(deleteDQ(getSoup(url).text))["list"]
+    try:
+        global lastNovelId, initialRun
+        newNovels = []
+        novelList = json.loads(deleteDQ(getSoup(url).text))["list"]
 
-    # if this is the first time running the script, don't fetch the novels but update the last novel id
-    if (initialRun[genre] == True):
-        lastNovelId[genre] = novelList[0]["series_id"]
-        initialRun[genre] = False
+        # if this is the first time running the script, don't fetch the novels but update the last novel id
+        if (initialRun[genre] == True):
+            lastNovelId[genre] = novelList[0]["series_id"]
+            initialRun[genre] = False
 
-    else:
-        scheduled_novels = []
+        else:
+            scheduled_novels = []
 
-        for job in schedule.jobs[1:]:
-            scheduled_novels.append(job.job_func.args[0]["novelId"])
+            for job in schedule.jobs[1:]:
+                scheduled_novels.append(job.job_func.args[0]["novelId"])
 
-        for novelData in novelList:
-            novel = {}
+            for novelData in novelList:
+                novel = {}
 
-            novel["platform"] = "kakaopage"
-            novel["genres"] = ["판타지", "현판", "로맨스", "로판", "무협", "판드", "BL"][genre]
-            novel["novelId"] = novelData["series_id"]
+                novel["platform"] = "kakaopage"
+                novel["genres"] = ["판타지", "현판", "로맨스", "로판", "무협", "판드", "BL"][genre]
+                novel["novelId"] = novelData["series_id"]
 
-            # if the current novel was already crawled before, break from loop
-            if (novel["novelId"] == lastNovelId[genre] or novel["novelId"] in scheduled_novels): break
+                # if the current novel was already crawled before, break from loop
+                if (novel["novelId"] == lastNovelId[genre] or novel["novelId"] in scheduled_novels): break
 
-            currentTime = datetime.now()
+                currentTime = datetime.now()
 
-            try:
-                novel["title"] = novelData["title"]
-                novel["author"] = novelData["author"]
+                try:
+                    novel["title"] = novelData["title"]
+                    novel["author"] = novelData["author"]
 
-                novel["start_total_views"] = novelData["read_count"]
-                novel["end_total_views"] = -1
+                    novel["start_total_views"] = novelData["read_count"]
+                    novel["end_total_views"] = -1
 
-                novel["chapters"] = -1
+                    novel["chapters"] = -1
 
-                novel["start_total_likes"] = novelData["like_count"]
-                novel["end_total_likes"] = -1
+                    novel["start_total_likes"] = novelData["like_count"]
+                    novel["end_total_likes"] = -1
 
-                novel["start_total_comments"] = novelData["comment_count"]
-                novel["end_total_comments"] = -1
+                    novel["start_total_comments"] = novelData["comment_count"]
+                    novel["end_total_comments"] = -1
 
-                novel["on_issue"] = True if novelData["on_issue"] == 'Y' else False
+                    novel["on_issue"] = True if novelData["on_issue"] == 'Y' else False
 
-                novel["monopoly"] = ""
-                novel["age_restriction"] = novelData["age_grade"]
+                    novel["monopoly"] = ""
+                    novel["age_restriction"] = novelData["age_grade"]
 
-                novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
-                novel["end_time"] = -1
+                    novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
+                    novel["end_time"] = -1
 
-                novel["keywords"] = extractKeywords(novel["title"])
+                    novel["keywords"] = extractKeywords(novel["title"])
 
-                newNovels.append(novel)
+                    newNovels.append(novel)
 
-                # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=70)
-                laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
-                schedule.every().day.at(laterTime).do(checkLater, novel)
+                    # schedule checkLater function for this novel
+                    laterTime = currentTime + timedelta(minutes=70)
+                    laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
+                    schedule.every().day.at(laterTime).do(checkLater, novel)
 
-            except:
-                printAndWrite("ERROR AT " + str(novel["novelId"]))
-                printAndWrite(traceback.format_exc())
+                except:
+                    printAndWrite("ERROR AT " + str(novel["novelId"]))
+                    printAndWrite(traceback.format_exc())
 
-            time.sleep(random.uniform(0.1, 0.5))
+                time.sleep(random.uniform(0.1, 0.5))
 
-        # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
+            # if there were new novels, update last novel id to the most recently uploaded novel's id
+            if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
 
-    for novelToPrint in newNovels:
-        printAndWrite(novelToPrint)
+        for novelToPrint in newNovels:
+            printAndWrite(novelToPrint)
+
+    except:
+        printAndWrite("Failed crawling kakaopage at " + str(datetime.now()) + "\n")
+        printAndWrite(traceback.format_exc())
 
 def startKakaopageCrawling():
     printAndWrite("started script at " + str(datetime.now()) + "\n")

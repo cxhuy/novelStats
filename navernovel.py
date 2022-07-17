@@ -138,83 +138,88 @@ def checkLater(novel):
 
 # refreshes every minute checking for newly uploaded novels
 def scrapPage(url, genre):
-    global lastNovelId, initialRun
-    newNovels = []
-    novelList = getSoup(url).find(class_="list_type1").select('li')
+    try:
+        global lastNovelId, initialRun
+        newNovels = []
+        novelList = getSoup(url).find(class_="list_type1").select('li')
 
-    # if this is the first time running the script, don't fetch the novels but update the last novel id
-    if (initialRun[genre] == True):
-        lastNovelId[genre] = int(novelList[0].select_one('a').get('href').split("/best/list?novelId=")[-1])
-        initialRun[genre] = False
+        # if this is the first time running the script, don't fetch the novels but update the last novel id
+        if (initialRun[genre] == True):
+            lastNovelId[genre] = int(novelList[0].select_one('a').get('href').split("/best/list?novelId=")[-1])
+            initialRun[genre] = False
 
-    else:
-        scheduled_novels = []
+        else:
+            scheduled_novels = []
 
-        for job in schedule.jobs[1:]:
-            scheduled_novels.append(job.job_func.args[0]["novelId"])
+            for job in schedule.jobs[1:]:
+                scheduled_novels.append(job.job_func.args[0]["novelId"])
 
-        for i in range(len(novelList)):
-            novel = {}
-            currentNovel = novelList[i]
-            novel["platform"] = "navernovel"
-            novel["novelId"] = int(currentNovel.select_one('a').get('href').split("/best/list?novelId=")[-1])
+            for i in range(len(novelList)):
+                novel = {}
+                currentNovel = novelList[i]
+                novel["platform"] = "navernovel"
+                novel["novelId"] = int(currentNovel.select_one('a').get('href').split("/best/list?novelId=")[-1])
 
-            # if the current novel was already crawled before, break from loop
-            if (novel["novelId"] == lastNovelId[genre] or novel["novelId"] in scheduled_novels): break
+                # if the current novel was already crawled before, break from loop
+                if (novel["novelId"] == lastNovelId[genre] or novel["novelId"] in scheduled_novels): break
 
-            novel["title"] = currentNovel.select_one('a').get('title').strip()
-            novel["author"] = currentNovel.find(class_="ellipsis").text.strip()
-            novel["chapters"] = extractVal(currentNovel.find(class_="num_total").text.strip())
-            novel["genres"] = ["로맨스", "로판", "판타지", "현판", "무협", "미스터리", "라이트노벨"][genre]
+                novel["title"] = currentNovel.select_one('a').get('title').strip()
+                novel["author"] = currentNovel.find(class_="ellipsis").text.strip()
+                novel["chapters"] = extractVal(currentNovel.find(class_="num_total").text.strip())
+                novel["genres"] = ["로맨스", "로판", "판타지", "현판", "무협", "미스터리", "라이트노벨"][genre]
 
-            # try crawling additional information from the novel's individual page
-            novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["novelId"])
-            currentTime = datetime.now()
+                # try crawling additional information from the novel's individual page
+                novelUrl = "https://novel.naver.com/challenge/list?novelId=" + str(novel["novelId"])
+                currentTime = datetime.now()
 
-            try:
-                novelPage = getSoup(novelUrl)
+                try:
+                    novelPage = getSoup(novelUrl)
 
-                # novel["start_favs"] = -1
-                # novel["end_favs"] = -1
+                    # novel["start_favs"] = -1
+                    # novel["end_favs"] = -1
 
-                novel["start_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
-                novel["end_rating"] = -1
+                    novel["start_rating"] = float(novelPage.find(class_="grade_area").select_one('em').text.strip())
+                    novel["end_rating"] = -1
 
-                novel["start_recent_comments"] = 0
-                novel["end_recent_comments"] = -1
+                    novel["start_recent_comments"] = 0
+                    novel["end_recent_comments"] = -1
 
-                novel["start_reviews"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
-                novel["end_reviews"] = -1
+                    novel["start_reviews"] = extractVal(novelPage.find(id="reviewCommentCnt").text)
+                    novel["end_reviews"] = -1
 
-                novel["start_recent_views"] = 0
-                novel["end_recent_views"] = -1
+                    novel["start_recent_views"] = 0
+                    novel["end_recent_views"] = -1
 
-                novel["start_total_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
-                novel["end_total_likes"] = -1
+                    novel["start_total_likes"] = extractVal(novelPage.find(class_="info_book").find(id="concernCount").text)
+                    novel["end_total_likes"] = -1
 
-                novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
-                novel["end_time"] = -1
+                    novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
+                    novel["end_time"] = -1
 
-                novel["keywords"] = extractKeywords(novel["title"])
+                    novel["keywords"] = extractKeywords(novel["title"])
 
-                newNovels.append(novel)
+                    newNovels.append(novel)
 
-                # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=70)
-                laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
-                schedule.every().day.at(laterTime).do(checkLater, novel)
+                    # schedule checkLater function for this novel
+                    laterTime = currentTime + timedelta(minutes=70)
+                    laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
+                    schedule.every().day.at(laterTime).do(checkLater, novel)
 
-            except:
-                printAndWrite("ERROR AT " + str(novel["novelId"]))
-                printAndWrite(traceback.format_exc())
+                except:
+                    printAndWrite("ERROR AT " + str(novel["novelId"]))
+                    printAndWrite(traceback.format_exc())
 
-            time.sleep(random.uniform(0.1, 0.5))
+                time.sleep(random.uniform(0.1, 0.5))
 
-        # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
+            # if there were new novels, update last novel id to the most recently uploaded novel's id
+            if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
 
-    for novelToPrint in newNovels:
-        printAndWrite(novelToPrint)
+        for novelToPrint in newNovels:
+            printAndWrite(novelToPrint)
+
+    except:
+        printAndWrite("Failed crawling navernovel at " + str(datetime.now()) + "\n")
+        printAndWrite(traceback.format_exc())
 
 def startNavernovelCrawling():
     printAndWrite("started script at " + str(datetime.now()) + "\n")

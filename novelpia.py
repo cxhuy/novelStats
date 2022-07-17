@@ -144,91 +144,96 @@ def checkLater(novel):
 
 # refreshes every minute checking for newly uploaded novels
 def scrapPage(url, pricing):
-    global lastNovelId, initialRun
-    newNovels = []
-    novelList = getSoup(url).find_all(class_="novelbox")
+    try:
+        global lastNovelId, initialRun
+        newNovels = []
+        novelList = getSoup(url).find_all(class_="novelbox")
 
-    # if this is the first time running the script, don't fetch the novels but update the last novel id
-    if (initialRun[pricing] == True):
-        lastNovelId[pricing] = int(novelList[0].find(class_="name_st").get('onclick').split('/')[-1].replace('\';', ''))
-        initialRun[pricing] = False
+        # if this is the first time running the script, don't fetch the novels but update the last novel id
+        if (initialRun[pricing] == True):
+            lastNovelId[pricing] = int(novelList[0].find(class_="name_st").get('onclick').split('/')[-1].replace('\';', ''))
+            initialRun[pricing] = False
 
-    else:
-        scheduled_novels = []
+        else:
+            scheduled_novels = []
 
-        for job in schedule.jobs[1:]:
-            scheduled_novels.append(job.job_func.args[0]["novelId"])
+            for job in schedule.jobs[1:]:
+                scheduled_novels.append(job.job_func.args[0]["novelId"])
 
-        for i in range(len(novelList)):
-            novel = {}
-            currentNovel = novelList[i]
-            novel["platform"] = "novelpia"
-            novel["pricing"] = ["자유연재", "플러스"][pricing]
-            novel["novelId"] = int(currentNovel.find(class_="name_st").get('onclick').split('/')[-1].replace('\';', ''))
+            for i in range(len(novelList)):
+                novel = {}
+                currentNovel = novelList[i]
+                novel["platform"] = "novelpia"
+                novel["pricing"] = ["자유연재", "플러스"][pricing]
+                novel["novelId"] = int(currentNovel.find(class_="name_st").get('onclick').split('/')[-1].replace('\';', ''))
 
-            # if the current novel was already crawled before, break from loop
-            if (novel["novelId"] == lastNovelId[pricing] or novel["novelId"] in scheduled_novels): break
+                # if the current novel was already crawled before, break from loop
+                if (novel["novelId"] == lastNovelId[pricing] or novel["novelId"] in scheduled_novels): break
 
-            novel["title"] = currentNovel.find(class_="name_st").text.strip()
-            novel["author"] = currentNovel.find(class_="info_font").text.strip()
+                novel["title"] = currentNovel.find(class_="name_st").text.strip()
+                novel["author"] = currentNovel.find(class_="info_font").text.strip()
 
-            # try crawling additional information from the novel's individual page
-            novelUrl = 'https://novelpia.com/novel/' + str(novel["novelId"])
-            currentTime = datetime.now()
+                # try crawling additional information from the novel's individual page
+                novelUrl = 'https://novelpia.com/novel/' + str(novel["novelId"])
+                currentTime = datetime.now()
 
-            try:
-                novelPage = getSoup(novelUrl)
+                try:
+                    novelPage = getSoup(novelUrl)
 
-                genre = []
-                tags = []
+                    genre = []
+                    tags = []
 
-                for tag in novelPage.find_all(class_="more_info")[0].select('span')[2:-1]:
-                    tag = tag.text.strip().replace('#', '')
-                    if tag in ["판타지", "무협", "현대", "로맨스", "현대판타지", "라이트노벨", "공포", "SF", "스포츠", "대체역사", "기타", "패러디"]:
-                        genre.append(tag)
-                    else:
-                        tags.append(conn.escape_string(tag))
+                    for tag in novelPage.find_all(class_="more_info")[0].select('span')[2:-1]:
+                        tag = tag.text.strip().replace('#', '')
+                        if tag in ["판타지", "무협", "현대", "로맨스", "현대판타지", "라이트노벨", "공포", "SF", "스포츠", "대체역사", "기타", "패러디"]:
+                            genre.append(tag)
+                        else:
+                            tags.append(conn.escape_string(tag))
 
-                novel["genres"] = genre
-                novel["tags"] = tags
+                    novel["genres"] = genre
+                    novel["tags"] = tags
 
-                novel["monopoly"] = "독점" if novelPage.find(class_="b_mono") is not None else "비독점"
+                    novel["monopoly"] = "독점" if novelPage.find(class_="b_mono") is not None else "비독점"
 
-                novel["age_restriction"] = 15 if novelPage.find(class_="b_15") is not None else 0
+                    novel["age_restriction"] = 15 if novelPage.find(class_="b_15") is not None else 0
 
-                novel["start_favs"] = extractVal(novelPage.find(id="like_text").text)
-                novel["end_favs"] = -1
+                    novel["start_favs"] = extractVal(novelPage.find(id="like_text").text)
+                    novel["end_favs"] = -1
 
-                novel["start_alarm"] = extractVal(novelPage.find(id="alarm_text").text)
-                novel["end_alarm"] = -1
+                    novel["start_alarm"] = extractVal(novelPage.find(id="alarm_text").text)
+                    novel["end_alarm"] = -1
 
-                novel["chapters"] = extractVal(novelPage.find_all(class_="more_info")[-1].select('span')[1].text.strip())
-                novel["start_total_views"] = extractVal(novelPage.find_all(class_="more_info")[-1].select('span')[0].text.strip())
-                novel["end_total_views"] = -1
-                novel["start_total_likes"] = extractVal(novelPage.find_all(class_="more_info")[-1].select('span')[2].text.strip())
-                novel["end_total_likes"] = -1
-                novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
-                novel["end_time"] = -1
-                novel["keywords"] = extractKeywords(novel["title"])
+                    novel["chapters"] = extractVal(novelPage.find_all(class_="more_info")[-1].select('span')[1].text.strip())
+                    novel["start_total_views"] = extractVal(novelPage.find_all(class_="more_info")[-1].select('span')[0].text.strip())
+                    novel["end_total_views"] = -1
+                    novel["start_total_likes"] = extractVal(novelPage.find_all(class_="more_info")[-1].select('span')[2].text.strip())
+                    novel["end_total_likes"] = -1
+                    novel["start_time"] = currentTime.strftime('%Y-%m-%d %H:%M:%S.000')
+                    novel["end_time"] = -1
+                    novel["keywords"] = extractKeywords(novel["title"])
 
-                newNovels.append(novel)
+                    newNovels.append(novel)
 
-                # schedule checkLater function for this novel
-                laterTime = currentTime + timedelta(minutes=70)
-                laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
-                schedule.every().day.at(laterTime).do(checkLater, novel)
+                    # schedule checkLater function for this novel
+                    laterTime = currentTime + timedelta(minutes=70)
+                    laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
+                    schedule.every().day.at(laterTime).do(checkLater, novel)
 
-            except:
-                printAndWrite("ERROR AT " + str(novel["novelId"]))
-                printAndWrite(traceback.format_exc())
+                except:
+                    printAndWrite("ERROR AT " + str(novel["novelId"]))
+                    printAndWrite(traceback.format_exc())
 
-            time.sleep(random.uniform(0.1, 0.5))
+                time.sleep(random.uniform(0.1, 0.5))
 
-        # if there were new novels, update last novel id to the most recently uploaded novel's id
-        if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["novelId"]
+            # if there were new novels, update last novel id to the most recently uploaded novel's id
+            if (len(newNovels) > 0): lastNovelId[pricing] = newNovels[0]["novelId"]
 
-    for novelToPrint in newNovels:
-        printAndWrite(novelToPrint)
+        for novelToPrint in newNovels:
+            printAndWrite(novelToPrint)
+
+    except:
+        printAndWrite("Failed crawling novelpia at " + str(datetime.now()) + "\n")
+        printAndWrite(traceback.format_exc())
 
 def startNovelpiaCrawling():
     printAndWrite("started script at " + str(datetime.now()) + "\n")
