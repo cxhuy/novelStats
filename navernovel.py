@@ -138,7 +138,7 @@ def checkLater(novel):
     novel["end_time"] = currentTime
 
     storeNovel(novel)
-    time.sleep(random.uniform(0.1, 0.5))
+    time.sleep(random.uniform(0.1, 0.2))
 
     return schedule.CancelJob
 
@@ -215,7 +215,7 @@ def scrapPage(url, genre):
                     printAndWrite("ERROR AT " + str(novel["novelId"]))
                     printAndWrite(traceback.format_exc())
 
-                time.sleep(random.uniform(0.1, 0.5))
+                time.sleep(random.uniform(0.1, 0.2))
 
             # if there were new novels, update last novel id to the most recently uploaded novel's id
             if (len(newNovels) > 0): lastNovelId[genre] = newNovels[0]["novelId"]
