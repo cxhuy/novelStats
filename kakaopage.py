@@ -226,7 +226,7 @@ def startKakaopageCrawling():
     printAndWrite("started script at " + str(datetime.now()) + "\n")
 
     # run function scrapAllPages every minute
-    schedule.every().minute.at(":00").do(scrapAllPages)
+    schedule.every().minute.at(os.environ.get('crawlsat')).do(scrapAllPages)
 
     while True:
         schedule.run_pending()
