@@ -7,6 +7,7 @@ p4 = multiprocessing.Process(target=kakaostage.startKakaostageCrawling)
 p5 = multiprocessing.Process(target=kakaopage.startKakaopageCrawling)
 
 if __name__ == "__main__":
+    multiprocessing.set_start_method('spawn')
     p1.start()
     p2.start()
     p3.start()
