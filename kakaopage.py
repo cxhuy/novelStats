@@ -22,6 +22,10 @@ conn = pymysql.connect(
 
 cur = conn.cursor()
 
+sql = "SET SESSION wait_timeout=28800;"
+cur.execute(sql)
+conn.commit()
+
 okt = Okt()
 hannanum = Hannanum()
 
@@ -68,7 +72,7 @@ def deleteDQ(anno):
 
 # runs scrapPage functions for all pages
 def scrapAllPages():
-    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+    printAndWrite('\n' + str(datetime.now()) + "\n[Kakaopage New Novels]")
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=86&page=0", 0) # 판타지
     # time.sleep(2)
     scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=120&page=0", 1) # 현판
@@ -81,7 +85,7 @@ def scrapAllPages():
     # time.sleep(2)
     # scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=1113&page=0", 5) # 판드
     # scrapPage("https://api2-page.kakao.com/api/v1/store/filter/search?category_uid=11&subcategory_uid=1112&page=0", 6) # BL
-    printAndWrite("\n[Old Novels]")
+    printAndWrite("\n[Kakaopage Old Novels]")
 
 # store novel data in db
 def storeNovel(novel):

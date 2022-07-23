@@ -22,6 +22,10 @@ conn = pymysql.connect(
 
 cur = conn.cursor()
 
+sql = "SET SESSION wait_timeout=28800;"
+cur.execute(sql)
+conn.commit()
+
 okt = Okt()
 hannanum = Hannanum()
 
@@ -71,11 +75,11 @@ def printAndWrite(toPrint):
 
 # runs scrapPage functions for all pages
 def scrapAllPages():
-    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+    printAndWrite('\n' + str(datetime.now()) + "\n[Munpia New Novels]")
     scrapPage("https://novel.munpia.com/page/novelous/group/nv.pro/gpage/1", 0)     # 무료 작가연재
     scrapPage("https://novel.munpia.com/page/novelous/group/nv.regular/gpage/1", 1) # 무료 일반연재
     scrapPage("https://novel.munpia.com/page/novelous/group/pl.serial/gpage/1", 2)  # 유료 연재작
-    printAndWrite("\n[Old Novels]")
+    printAndWrite("\n[Munpia Old Novels]")
 
 # store novel data in db
 def storeNovel(novel):

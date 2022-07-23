@@ -22,6 +22,10 @@ conn = pymysql.connect(
 
 cur = conn.cursor()
 
+sql = "SET SESSION wait_timeout=28800;"
+cur.execute(sql)
+conn.commit()
+
 okt = Okt()
 hannanum = Hannanum()
 
@@ -82,7 +86,7 @@ def printAndWrite(toPrint):
 
 # runs scrapPage functions for all pages
 def scrapAllPages():
-    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+    printAndWrite('\n' + str(datetime.now()) + "\n[Kakaostage New Novels]")
     scrapPage("https://api-pagestage.kakao.com/novels/genres/1?subGenreIds=1&page=0&size=20&sort=latestPublishedAt,desc&sort=id,desc&adult=false", 0) # 판타지
     scrapPage("https://api-pagestage.kakao.com/novels/genres/2?subGenreIds=2&page=0&size=20&sort=latestPublishedAt,desc&sort=id,desc&adult=false", 1) # 현판
     scrapPage("https://api-pagestage.kakao.com/novels/genres/3?subGenreIds=3&page=0&size=20&sort=latestPublishedAt,desc&sort=id,desc&adult=false", 2) # 무협
@@ -90,7 +94,7 @@ def scrapAllPages():
     scrapPage("https://api-pagestage.kakao.com/novels/genres/5?subGenreIds=5&page=0&size=20&sort=latestPublishedAt,desc&sort=id,desc&adult=false", 4) # 로판
     scrapPage("https://api-pagestage.kakao.com/novels/genres/6?subGenreIds=6&page=0&size=20&sort=latestPublishedAt,desc&sort=id,desc&adult=false", 5) # BL
     scrapPage("https://api-pagestage.kakao.com/novels/genres/7?subGenreIds=7&page=0&size=20&sort=latestPublishedAt,desc&sort=id,desc&adult=false", 6) # 자유
-    printAndWrite("\n[Old Novels]")
+    printAndWrite("\n[Kakaostage Old Novels]")
 
 # store novel data in db
 def storeNovel(novel):

@@ -22,6 +22,10 @@ conn = pymysql.connect(
 
 cur = conn.cursor()
 
+sql = "SET SESSION wait_timeout=28800;"
+cur.execute(sql)
+conn.commit()
+
 okt = Okt()
 hannanum = Hannanum()
 
@@ -72,7 +76,7 @@ def printAndWrite(toPrint):
 
 # runs scrapPage functions for all pages
 def scrapAllPages():
-    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+    printAndWrite('\n' + str(datetime.now()) + "\n[Navernovel New Novels]")
     scrapPage("https://novel.naver.com/best/genre?genre=101", 0) # 로맨스
     scrapPage("https://novel.naver.com/best/genre?genre=109", 1) # 로판
     scrapPage("https://novel.naver.com/best/genre?genre=102", 2) # 판타지
@@ -80,7 +84,7 @@ def scrapAllPages():
     scrapPage("https://novel.naver.com/best/genre?genre=103", 4) # 무협
     scrapPage("https://novel.naver.com/best/genre?genre=104", 5) # 미스터리
     scrapPage("https://novel.naver.com/best/genre?genre=106", 6) # 라이트노벨
-    printAndWrite("\n[Old Novels]")
+    printAndWrite("\n[Navernovel Old Novels]")
 
 # store novel data in db
 def storeNovel(novel):

@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
 from dotenv import load_dotenv
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
+}
+
 f = open("logs/novelpia/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
 
 load_dotenv()
@@ -18,15 +22,15 @@ conn = pymysql.connect(
 
 cur = conn.cursor()
 
+sql = "SET SESSION wait_timeout=28800;"
+cur.execute(sql)
+conn.commit()
+
 okt = Okt()
 hannanum = Hannanum()
 
 lastNovelId = [-1, -1]
 initialRun = [True, True]
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
-}
 
 # function for getting soup of input url
 def getSoup(url):
@@ -71,10 +75,10 @@ def printAndWrite(toPrint):
 
 # runs scrapPage functions for all pages
 def scrapAllPages():
-    printAndWrite('\n' + str(datetime.now()) + "\n[New Novels]")
+    printAndWrite('\n' + str(datetime.now()) + "\n[Novelpia New Novels]")
     scrapPage("https://novelpia.com/freestory/all/date/1/all/?main_genre=", 0) # 자유연재
     scrapPage("https://novelpia.com/plus/all/date/1/?main_genre=", 1)          # 플러스
-    printAndWrite("\n[Old Novels]")
+    printAndWrite("\n[Novelpia Old Novels]")
 
 # store novel data in db
 def storeNovel(novel):
