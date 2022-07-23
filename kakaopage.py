@@ -195,7 +195,7 @@ def scrapPage(url, genre):
                     newNovels.append(novel)
 
                     # schedule checkLater function for this novel
-                    laterTime = currentTime + timedelta(minutes=70)
+                    laterTime = currentTime + timedelta(minutes=os.environ.get('crawlingterm'))
                     laterTime = str(laterTime.hour).rjust(2, '0') + ':' + str(laterTime.minute).rjust(2, '0')
                     schedule.every().day.at(laterTime).do(checkLater, novel)
 
