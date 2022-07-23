@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 from konlpy.tag import Hannanum, Okt
 from dotenv import load_dotenv
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.0.0 Safari/537.36'
+}
+
 f = open("logs/munpia/" + datetime.now().strftime("%Y%m%d%H%M%S") + ".txt", 'w')
 
 load_dotenv()
@@ -26,7 +30,7 @@ initialRun = [True, True, True]
 
 # function for getting soup of input url
 def getSoup(url):
-    response = requests.get(url)
+    response = requests.get(url, headers=headers)
     assert response.status_code == 200, response.status_code
     html = response.text
     soup = BeautifulSoup(html, 'html.parser')
