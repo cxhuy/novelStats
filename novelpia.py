@@ -35,10 +35,13 @@ initialRun = [True, True]
 # function for getting soup of input url
 def getSoup(url):
     response = requests.get(url, headers=headers)
-    assert response.status_code == 200, response.status_code
-    html = response.text
-    soup = BeautifulSoup(html, 'html.parser')
-    return soup
+    if (response.status_code != 200):
+        printAndWrite(str(response.status_code) + "at novelpia")
+        return None
+    else:
+        html = response.text
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup
 
 # extracts numbers from string
 def extractVal(val):

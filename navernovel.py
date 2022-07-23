@@ -29,17 +29,19 @@ conn.commit()
 okt = Okt()
 hannanum = Hannanum()
 
-# url = 'https://novel.naver.com/challenge/genre?genre=101'
 lastNovelId = [-1, -1, -1, -1, -1, -1, -1]
 initialRun = [True, True, True, True, True, True, True]
 
 # function for getting soup of input url
 def getSoup(url):
     response = requests.get(url, headers=headers)
-    assert response.status_code == 200, response.status_code
-    html = response.text
-    soup = BeautifulSoup(html, 'html.parser')
-    return soup
+    if (response.status_code != 200):
+        printAndWrite(str(response.status_code) + "at navernovel")
+        return None
+    else:
+        html = response.text
+        soup = BeautifulSoup(html, 'html.parser')
+        return soup
 
 # extracts number from string
 def extractVal(val):
