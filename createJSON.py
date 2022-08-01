@@ -68,6 +68,9 @@ for platform in platforms:
             eval(platform + "Data")["heatmapData"]["views"][i][j] = 0
             eval(platform + "Data")["heatmapData"]["uploads"][i][j] = 0
 
+    for genre in eval(platform + "Data")["platformInfoData"]["platformGenres"]:
+        eval(platform + "Data")["genreData"][genre] = {}
+
     for row in rows:
         if (row["end_total_views"] != None):
             total_views += row["end_total_views"]
