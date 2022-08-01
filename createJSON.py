@@ -74,7 +74,8 @@ for platform in platforms:
         total_novels += 1
         total_chapters += row["chapters"]
         total_upload_periods += row["weeklyUploadCount"]
-        munpiaData["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += row["end_total_views"] - row["start_total_views"]
+        munpiaData["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
+            row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row["start_total_views"] > 0 else 0
         munpiaData["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
 
     munpiaData["platformInfoData"]["totalViews"] = total_views
@@ -89,6 +90,12 @@ for platform in platforms:
         uploadList += list(munpiaData["heatmapData"]["uploads"][i].values())
     munpiaData["heatmapData"]["mostViews"] = max(viewList)
     munpiaData["heatmapData"]["mostUploads"] = max(uploadList)
+
+    avgViewList = [int(viewList[x]/uploadList[x]) if uploadList[x] != 0 else 0 for x in range(7*24)]
+    for i in range(5):
+        index = avgViewList.index(max(avgViewList))
+        munpiaData["heatmapData"]["bestTimes"].append(["월", "화", "수", "목", "금", "토", "일"][int(index/24)] + " " + str(index%24).rjust(2, '0') + ":00 ~ " + str(index%24 + 1).rjust(2, '0') + ":00")
+        avgViewList[index] = 0
 
 print(json.dumps(munpiaData, indent=4, sort_keys=True))
 
