@@ -28,9 +28,39 @@ munpiaData = {
     },
 
     'heatmapData': {
-        'views': [],
+        'views': {
+            0: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            1: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            2: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            3: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            4: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            5: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            6: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+        },
         'mostViews': -1,
-        'uploads': [],
+        'uploads': {
+            0: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            1: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            2: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            3: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            4: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            5: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+            6: {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0,
+                16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 21: 0, 22: 0, 23: 0, },
+        },
         'mostUploads': -1,
         'bestTimes': [],
     },
@@ -48,8 +78,8 @@ munpiaData = {
 }
 
 # platforms = ['munpia', 'novelpia', 'kakaopage', 'kakaostage', 'navernovel']
-platforms = ['munpia']
-a = []
+platforms = ["munpia"]
+
 for platform in platforms:
     sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceIId and platform = '" + platform + "' and start_time >= subdate(current_timestamp, 7);"
     cur.execute(sql)
@@ -66,27 +96,15 @@ for platform in platforms:
         total_novels += 1
         total_chapters += row["chapters"]
         total_upload_periods += row["weeklyUploadCount"]
+        print(row["start_time"].weekday(), row["start_time"].hour)
+        munpiaData["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += row["end_total_views"]
+        munpiaData["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
 
-    munpiaData['platformInfoData']['totalViews'] = total_views
-    munpiaData['platformInfoData']['totalNovels'] = total_novels
-    munpiaData['platformInfoData']['avgViews'] = int(total_views / total_novels)
-    munpiaData['platformInfoData']['avgChapters'] = int(total_chapters / total_novels)
-
-    current_time = datetime.today()
-    for weekday in range(7):
-        for hour in range(24):
-            for row in rows:
-                if (row["start_time"].weekday() == weekday and row["start_time"].hour == hour):
-                    print(row["start_time"], weekday, hour)
-                    
-
-    # print(platform, total_novels, total_views, total_views/total_novels, total_chapters/total_novels, total_upload_periods/total_novels)
+    munpiaData["platformInfoData"]["totalViews"] = total_views
+    munpiaData["platformInfoData"]["totalNovels"] = total_novels
+    munpiaData["platformInfoData"]["avgViews"] = int(total_views / total_novels)
+    munpiaData["platformInfoData"]["avgChapters"] = int(total_chapters / total_novels)
 
 print(json.dumps(munpiaData, indent=4, sort_keys=True))
-# print(datetime.now().weekday() - timedelta(days=current_time.weekday())).day)
-
-date = []
-date_time_str = '2022-07-31 01:14:22'
-print(datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S').day)
 
 conn.commit()
