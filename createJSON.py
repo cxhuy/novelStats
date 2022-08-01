@@ -71,6 +71,12 @@ for platform in platforms:
     for genre in eval(platform + "Data")["platformInfoData"]["platformGenres"]:
         eval(platform + "Data")["genreData"][genre] = {}
 
+    for monopoly in eval(platform + "Data")["platformInfoData"]["platformMonopoly"]:
+        eval(platform + "Data")["monopolyData"][monopoly] = {}
+
+    for i in range(1, 8):
+        eval(platform + "Data")["uploadPeriodData"][i] = {}
+
     for row in rows:
         if (row["end_total_views"] != None):
             total_views += row["end_total_views"]
