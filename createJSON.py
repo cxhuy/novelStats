@@ -76,7 +76,7 @@ for platform in platforms:
     for weekday in range(7):
         print(weekday)
         for row in rows:
-            if (row["start_time"].day == (current_time - timedelta(days=current_time.weekday())).day or current_time.weekday() == weekday):
+            if (row["start_time"].weekday() == weekday):
                 print(row["start_time"])
 
     # print(platform, total_novels, total_views, total_views/total_novels, total_chapters/total_novels, total_upload_periods/total_novels)
