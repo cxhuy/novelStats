@@ -74,10 +74,11 @@ for platform in platforms:
 
     current_time = datetime.today()
     for weekday in range(7):
-        print(weekday)
-        for row in rows:
-            if (row["start_time"].weekday() == weekday):
-                print(row["start_time"])
+        for hour in range(24):
+            for row in rows:
+                if (row["start_time"].weekday() == weekday and row["start_time"].hour == hour):
+                    print(row["start_time"], weekday, hour)
+                    
 
     # print(platform, total_novels, total_views, total_views/total_novels, total_chapters/total_novels, total_upload_periods/total_novels)
 
