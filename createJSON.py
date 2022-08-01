@@ -19,9 +19,10 @@ munpiaData = {
         'platformName': "문피아",
         'platformYear': 2012,
         'platformMonth': 12,
-        'platformPricings': ["무료 작가연재", "무료 일반연재", "유료 연재작"],
+        'platformGenres': ["무협", "판타지", "퓨전", "게임", "스포츠", "로맨스", "라이트노벨", "현대판타지", "대체역사", "전쟁·밀리터리", "SF", "추리",
+                           "공포·미스테리", "일반소설", "시·수필", "중·단편", "아동소설·동화", "드라마", "연극·시나리오", "BL", "팬픽·패러디"],
         'platformMonopoly': ["비독점", "선독점", "독점"],
-        'platformGenres': ["무협", "판타지", "퓨전", "게임", "스포츠", "로맨스", "라이트노벨", "현대판타지", "대체역사", "전쟁·밀리터리", "SF", "추리", "공포·미스테리", "일반소설", "시·수필", "중·단편", "아동소설·동화", "드라마", "연극·시나리오", "BL", "팬픽·패러디"],
+        'platformPricings': ["무료 작가연재", "무료 일반연재", "유료 연재작"],
         'totalViews': -1,
         'totalNovels': -1,
         'avgViews': -1,
@@ -39,6 +40,8 @@ munpiaData = {
     'genreData': {},
 
     'monopolyData': {},
+
+    'pricingData': {},
 
     'uploadPeriodData': {},
 
@@ -73,6 +76,9 @@ for platform in platforms:
 
     for monopoly in eval(platform + "Data")["platformInfoData"]["platformMonopoly"]:
         eval(platform + "Data")["monopolyData"][monopoly] = {}
+
+    for pricing in eval(platform + "Data")["platformInfoData"]["platformPricings"]:
+        eval(platform + "Data")["pricingData"][pricing] = {}
 
     for i in range(1, 8):
         eval(platform + "Data")["uploadPeriodData"][i] = {}
