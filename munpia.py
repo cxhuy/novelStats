@@ -22,7 +22,7 @@ conn = pymysql.connect(
 
 cur = conn.cursor()
 
-sql = "SET SESSION wait_timeout=28800;"
+sql = "SET SESSION wait_timeout=43200;"
 cur.execute(sql)
 conn.commit()
 
