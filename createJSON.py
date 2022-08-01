@@ -77,27 +77,27 @@ for platform in platforms:
         total_novels += 1
         total_chapters += row["chapters"]
         total_upload_periods += row["weeklyUploadCount"]
-        munpiaData["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
+        eval(platform + "Data")["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
             row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row["start_total_views"] > 0 else 0
-        munpiaData["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
+        eval(platform + "Data")["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
 
-    munpiaData["platformInfoData"]["totalViews"] = total_views
-    munpiaData["platformInfoData"]["totalNovels"] = total_novels
-    munpiaData["platformInfoData"]["avgViews"] = int(total_views / total_novels)
-    munpiaData["platformInfoData"]["avgChapters"] = int(total_chapters / total_novels)
+    eval(platform + "Data")["platformInfoData"]["totalViews"] = total_views
+    eval(platform + "Data")["platformInfoData"]["totalNovels"] = total_novels
+    eval(platform + "Data")["platformInfoData"]["avgViews"] = int(total_views / total_novels)
+    eval(platform + "Data")["platformInfoData"]["avgChapters"] = int(total_chapters / total_novels)
 
     viewList = []
     uploadList = []
     for i in range(7):
-        viewList += list(munpiaData["heatmapData"]["views"][i].values())
-        uploadList += list(munpiaData["heatmapData"]["uploads"][i].values())
-    munpiaData["heatmapData"]["mostViews"] = max(viewList)
-    munpiaData["heatmapData"]["mostUploads"] = max(uploadList)
+        viewList += list(eval(platform + "Data")["heatmapData"]["views"][i].values())
+        uploadList += list(eval(platform + "Data")["heatmapData"]["uploads"][i].values())
+    eval(platform + "Data")["heatmapData"]["mostViews"] = max(viewList)
+    eval(platform + "Data")["heatmapData"]["mostUploads"] = max(uploadList)
 
     avgViewList = [int(viewList[x]/uploadList[x]) if uploadList[x] != 0 else 0 for x in range(7*24)]
     for i in range(5):
         index = avgViewList.index(max(avgViewList))
-        munpiaData["heatmapData"]["bestTimes"].append(["월", "화", "수", "목", "금", "토", "일"][int(index/24)] + " " + str(index%24).rjust(2, '0') + ":00 ~ " + str(index%24 + 1).rjust(2, '0') + ":00")
+        eval(platform + "Data")["heatmapData"]["bestTimes"].append(["월", "화", "수", "목", "금", "토", "일"][int(index/24)] + " " + str(index%24).rjust(2, '0') + ":00 ~ " + str(index%24 + 1).rjust(2, '0') + ":00")
         avgViewList[index] = 0
 
 print(json.dumps(munpiaData, indent=4, sort_keys=True))
