@@ -96,14 +96,21 @@ for platform in platforms:
         total_novels += 1
         total_chapters += row["chapters"]
         total_upload_periods += row["weeklyUploadCount"]
-        print(row["start_time"].weekday(), row["start_time"].hour)
-        munpiaData["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += row["end_total_views"]
+        munpiaData["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += row["end_total_views"] - row["start_total_views"]
         munpiaData["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
 
     munpiaData["platformInfoData"]["totalViews"] = total_views
     munpiaData["platformInfoData"]["totalNovels"] = total_novels
     munpiaData["platformInfoData"]["avgViews"] = int(total_views / total_novels)
     munpiaData["platformInfoData"]["avgChapters"] = int(total_chapters / total_novels)
+
+    viewList = []
+    uploadList = []
+    for i in range(7):
+        viewList += list(munpiaData["heatmapData"]["views"][i].values())
+        uploadList += list(munpiaData["heatmapData"]["uploads"][i].values())
+    munpiaData["heatmapData"]["mostViews"] = max(viewList)
+    munpiaData["heatmapData"]["mostUploads"] = max(uploadList)
 
 print(json.dumps(munpiaData, indent=4, sort_keys=True))
 
