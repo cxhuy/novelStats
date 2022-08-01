@@ -72,26 +72,58 @@ for platform in platforms:
             eval(platform + "Data")["heatmapData"]["uploads"][i][j] = 0
 
     for genre in eval(platform + "Data")["platformInfoData"]["platformGenres"]:
-        eval(platform + "Data")["genreData"][genre] = {}
+        eval(platform + "Data")["genreData"][genre] = {
+            'novelCount': 0,
+            'totalViews': 0,
+            'avgViews': 0,
+            'totalLikes': 0,
+            'avgLikes': 0,
+            'totalFavs': 0,
+            'avgFavs': 0,
+        }
 
     for monopoly in eval(platform + "Data")["platformInfoData"]["platformMonopoly"]:
-        eval(platform + "Data")["monopolyData"][monopoly] = {}
+        eval(platform + "Data")["monopolyData"][monopoly] = {
+            'novelCount': 0,
+            'totalViews': 0,
+            'avgViews': 0,
+            'totalLikes': 0,
+            'avgLikes': 0,
+            'totalFavs': 0,
+            'avgFavs': 0,
+        }
 
     for pricing in eval(platform + "Data")["platformInfoData"]["platformPricings"]:
-        eval(platform + "Data")["pricingData"][pricing] = {}
+        eval(platform + "Data")["pricingData"][pricing] = {
+            'novelCount': 0,
+            'totalViews': 0,
+            'avgViews': 0,
+            'totalLikes': 0,
+            'avgLikes': 0,
+            'totalFavs': 0,
+            'avgFavs': 0,
+        }
 
     for i in range(1, 8):
-        eval(platform + "Data")["uploadPeriodData"][i] = {}
+        eval(platform + "Data")["uploadPeriodData"][i] = {
+            'novelCount': 0,
+            'totalViews': 0,
+            'avgViews': 0,
+            'totalLikes': 0,
+            'avgLikes': 0,
+            'totalFavs': 0,
+            'avgFavs': 0,
+        }
 
     for row in rows:
-        if (row["end_total_views"] != None):
-            total_views += row["end_total_views"]
+        total_views += max(row["start_total_views"], row["end_total_views"])
         total_novels += 1
         total_chapters += row["chapters"]
         total_upload_periods += row["weeklyUploadCount"]
-        eval(platform + "Data")["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
-            row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row["start_total_views"] > 0 else 0
-        eval(platform + "Data")["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
+        if (row["end_total_views"] > -1):
+            eval(platform + "Data")["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
+                row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row["start_total_views"] > 0 else 0
+            eval(platform + "Data")["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
 
     eval(platform + "Data")["platformInfoData"]["totalViews"] = total_views
     eval(platform + "Data")["platformInfoData"]["totalNovels"] = total_novels
