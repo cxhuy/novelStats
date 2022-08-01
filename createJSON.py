@@ -43,7 +43,7 @@ munpiaData = {
 
     'pricingData': {},
 
-    'uploadPeriodData': {},
+    'weeklyUploadCountData': {},
 
     'keywordsTagsData': {
         'keywordData': {},
@@ -62,7 +62,6 @@ for platform in platforms:
     total_views = 0
     total_novels = 0
     total_chapters = 0
-    total_upload_periods = 0
 
     for i in range(7):
         eval(platform + "Data")["heatmapData"]["views"][i] = {}
@@ -105,7 +104,7 @@ for platform in platforms:
         }
 
     for i in range(1, 8):
-        eval(platform + "Data")["uploadPeriodData"][i] = {
+        eval(platform + "Data")["weeklyUploadCountData"][i] = {
             'novelCount': 0,
             'totalViews': 0,
             'avgViews': 0,
@@ -115,15 +114,40 @@ for platform in platforms:
             'avgFavs': 0,
         }
 
+    dataTypes = ["monopoly", "pricing", "weeklyUploadCount"]
+
     for row in rows:
         total_views += max(row["start_total_views"], row["end_total_views"])
         total_novels += 1
         total_chapters += row["chapters"]
-        total_upload_periods += row["weeklyUploadCount"]
+
         if (row["end_total_views"] > -1):
             eval(platform + "Data")["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
                 row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row["start_total_views"] > 0 else 0
             eval(platform + "Data")["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
+
+        for dataType in dataTypes:
+            if (dataType == "weeklyUploadCount" and row[dataType] > 7):
+                row[dataType] = 7
+
+            eval(platform + "Data")[dataType + "Data"][row[dataType]]["novelCount"] += 1
+
+            if (platform in ["munpia", "novelpia", "kakaostage", "kakaopage"]):
+                eval(platform + "Data")[dataType + "Data"][row[dataType]]["totalViews"] += max(row["start_total_views"], row["end_total_views"])
+                eval(platform + "Data")[dataType + "Data"][row[dataType]]["avgViews"] = int(
+                    eval(platform + "Data")[dataType + "Data"][row[dataType]]["totalViews"] /
+                    eval(platform + "Data")[dataType + "Data"][row[dataType]]["novelCount"])
+
+            eval(platform + "Data")[dataType + "Data"][row[dataType]]["totalLikes"] += max(row["start_total_likes"], row["end_total_likes"])
+            eval(platform + "Data")[dataType + "Data"][row[dataType]]["avgLikes"] = int(
+                eval(platform + "Data")[dataType + "Data"][row[dataType]]["totalLikes"] /
+                eval(platform + "Data")[dataType + "Data"][row[dataType]]["novelCount"])
+
+            if (platform in ["munpia", "novelpia", "kakaostage"]):
+                eval(platform + "Data")[dataType + "Data"][row[dataType]]["totalFavs"] += max(row["start_favs"], row["end_favs"])
+                eval(platform + "Data")[dataType + "Data"][row[dataType]]["avgFavs"] = int(
+                    eval(platform + "Data")[dataType + "Data"][row[dataType]]["totalFavs"] /
+                    eval(platform + "Data")[dataType + "Data"][row[dataType]]["novelCount"])
 
     eval(platform + "Data")["platformInfoData"]["totalViews"] = total_views
     eval(platform + "Data")["platformInfoData"]["totalNovels"] = total_novels
