@@ -90,10 +90,7 @@ navernovelData = {
     },
 }
 
-platforms = ['navernovel']
-# platforms = ['munpia', 'novelpia', 'kakaopage', 'kakaostage', 'navernovel']
-
-# platforms = ["munpia"]
+platforms = ['munpia', 'novelpia', 'kakaopage', 'kakaostage', 'navernovel']
 
 for platform in platforms:
     sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceIId and platform = '" + platform + "' and start_time >= subdate(current_timestamp, 7);"
@@ -323,6 +320,6 @@ for platform in platforms:
             tagRank += 1
 
     print(json.dumps(eval(platform + "Data"), indent=4))
-    # with open('munpia.json', 'w', encoding='utf-8') as f:
-    #     json.dump(munpiaData, f, ensure_ascii=False, indent=4)
+    with open(platform + '.json', 'w', encoding='utf-8') as f:
+        json.dump(eval(platform + "Data"), f, ensure_ascii=False, indent=4)
 
