@@ -30,8 +30,70 @@ munpiaData = {
     },
 }
 
+novelpiaData = {
+    'platformInfoData': {
+        'platformName': "노벨피아",
+        'platformYear': 2021,
+        'platformMonth': 1,
+        'platformGenres': ["모든 장르", "판타지", "무협", "현대", "로맨스", "현대판타지", "라이트노벨", "공포", "SF", "스포츠", "대체역사", "기타", "패러디"],
+        'platformMonopoly': ["비독점", "독점"],
+        'platformPricings': ["자유연재", "플러스"],
+        'totalViews': -1,
+        'totalNovels': -1,
+        'avgViews': -1,
+        'avgChapters': -1,
+    },
+}
+
+kakaopageData = {
+    'platformInfoData': {
+        'platformName': "카카오페이지",
+        'platformYear': 2013,
+        'platformMonth': 4,
+        'platformGenres': ["모든 장르", "판타지", "현판", "로맨스", "로판", "무협"],
+        'platformMonopoly': ["비독점", "독점"],
+        'platformPricings': [],
+        'totalViews': -1,
+        'totalNovels': -1,
+        'avgViews': -1,
+        'avgChapters': -1,
+    },
+}
+
+kakaostageData = {
+    'platformInfoData': {
+        'platformName': "카카오페이지 스테이지",
+        'platformYear': 2021,
+        'platformMonth': 9,
+        'platformGenres': ["모든 장르", "판타지", "현판", "무협", "로맨스", "로판", "BL", "자유"],
+        'platformMonopoly': ["비독점", "독점"],
+        'platformPricings': [],
+        'totalViews': -1,
+        'totalNovels': -1,
+        'avgViews': -1,
+        'avgChapters': -1,
+    },
+}
+
+navernovelData = {
+    'platformInfoData': {
+        'platformName': "네이버 웹소설",
+        'platformYear': 2013,
+        'platformMonth': 1,
+        'platformGenres': ["모든 장르", "로맨스", "로판", "판타지", "현판", "무협", "미스터리", "라이트노벨"],
+        'platformMonopoly': [],
+        'platformPricings': [],
+        'totalViews': -1,
+        'totalNovels': -1,
+        'avgViews': -1,
+        'avgChapters': -1,
+    },
+}
+
+platforms = ['navernovel']
 # platforms = ['munpia', 'novelpia', 'kakaopage', 'kakaostage', 'navernovel']
-platforms = ["munpia"]
+
+# platforms = ["munpia"]
 
 for platform in platforms:
     sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceIId and platform = '" + platform + "' and start_time >= subdate(current_timestamp, 7);"
@@ -112,10 +174,15 @@ for platform in platforms:
             'avgFavs': 0,
         }
 
-    dataTypes = ["monopoly", "pricing", "weeklyUploadCount"]
-
+    if platform in ["munpia", "novelpia"]:
+        dataTypes = ["monopoly", "pricing", "weeklyUploadCount"]
+    elif platform in ["kakaopage", "kakaostage"]:
+        dataTypes = ["monopoly", "weeklyUploadCount"]
+    else:
+        dataTypes = ["weeklyUploadCount"]
     for row in rows:
-        total_views += max(row["start_total_views"], row["end_total_views"])
+        if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
+            total_views += max(row["start_total_views"], row["end_total_views"])
         total_novels += 1
         total_chapters += row["chapters"]
 
@@ -127,17 +194,31 @@ for platform in platforms:
         for rowGenre in rowGenres:
             rowGenre = rowGenre["genre"]
 
-            if (row["end_total_views"] > -1):
-                eval(platform + "Data")["heatmapData"]["모든 장르"]["views"][row["start_time"].weekday()][
-                    row["start_time"].hour] += \
-                    row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row[
-                        "start_total_views"] > 0 else 0
+            if (row["end_total_views"] == None or row["end_total_views"] > -1):
+                if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
+                    eval(platform + "Data")["heatmapData"]["모든 장르"]["views"][row["start_time"].weekday()][
+                        row["start_time"].hour] += \
+                        row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row[
+                            "start_total_views"] > 0 else 0
+                else:
+                    eval(platform + "Data")["heatmapData"]["모든 장르"]["views"][row["start_time"].weekday()][
+                        row["start_time"].hour] += \
+                        row["end_recent_views"] - row["start_recent_views"] if row["end_recent_views"] - row[
+                            "start_recent_views"] > 0 else 0
+
                 eval(platform + "Data")["heatmapData"]["모든 장르"]["uploads"][row["start_time"].weekday()][
                     row["start_time"].hour] += 1
 
-                eval(platform + "Data")["heatmapData"][rowGenre]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
-                    row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row[
-                        "start_total_views"] > 0 else 0
+                if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
+                    eval(platform + "Data")["heatmapData"][rowGenre]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
+                        row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row[
+                            "start_total_views"] > 0 else 0
+                else:
+                    eval(platform + "Data")["heatmapData"][rowGenre]["views"][row["start_time"].weekday()][
+                        row["start_time"].hour] += \
+                        row["end_recent_views"] - row["start_recent_views"] if row["end_recent_views"] - row[
+                            "start_recent_views"] > 0 else 0
+
                 eval(platform + "Data")["heatmapData"][rowGenre]["uploads"][row["start_time"].weekday()][
                     row["start_time"].hour] += 1
 
@@ -205,22 +286,23 @@ for platform in platforms:
             eval(platform + "Data")["heatmapData"][platformGenre]["bestTimes"].append(["월", "화", "수", "목", "금", "토", "일"][int(index/24)] + " " + str(index%24).rjust(2, '0') + ":00 ~ " + str(index%24 + 1).rjust(2, '0') + ":00")
             avgViewList[index] = 0
 
-    sql = "select *, totalViewCount / keywordCount as avgViewCount from (select keyword, count(*) as keywordCount, sum(viewCount) " \
-          "as totalViewCount from keywordsWithViewCount where novelInstanceId in (select max(novelInstanceId) " \
-          "as maxNovelInstanceIId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
-          "group by novelId) group by keyword order by keywordCount desc limit 20) tempTable;"
-    cur.execute(sql, (platform))
-    topKeywords = cur.fetchall()
-    conn.commit()
+    if (platform in ["munpia", "novelpia", "kakaopage", "kakaostage"]):
+        sql = "select *, totalViewCount / keywordCount as avgViewCount from (select keyword, count(*) as keywordCount, sum(viewCount) " \
+              "as totalViewCount from keywordsWithViewCount where novelInstanceId in (select max(novelInstanceId) " \
+              "as maxNovelInstanceIId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
+              "group by novelId) group by keyword order by keywordCount desc limit 20) tempTable;"
+        cur.execute(sql, (platform))
+        topKeywords = cur.fetchall()
+        conn.commit()
 
-    keywordRank = 1
-    for keyword in topKeywords:
-        eval(platform + "Data")["keywordsTagsData"]["keywordData"][keywordRank] = {
-            'keywordName': keyword["keyword"],
-            'keywordCount': keyword["keywordCount"],
-            'keywordAvgViewCount': int(keyword["avgViewCount"])
-        }
-        keywordRank += 1
+        keywordRank = 1
+        for keyword in topKeywords:
+            eval(platform + "Data")["keywordsTagsData"]["keywordData"][keywordRank] = {
+                'keywordName': keyword["keyword"],
+                'keywordCount': keyword["keywordCount"],
+                'keywordAvgViewCount': int(keyword["avgViewCount"])
+            }
+            keywordRank += 1
 
     if (platform in ["munpia", "novelpia"]):
         sql = "select *, totalViewCount / tagCount as avgViewCount from (select tag, count(*) as tagCount, sum(viewCount) " \
@@ -240,5 +322,7 @@ for platform in platforms:
             }
             tagRank += 1
 
-print(json.dumps(munpiaData, indent=4))
+    print(json.dumps(eval(platform + "Data"), indent=4))
+    # with open('munpia.json', 'w', encoding='utf-8') as f:
+    #     json.dump(munpiaData, f, ensure_ascii=False, indent=4)
 
