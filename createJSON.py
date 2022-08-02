@@ -58,6 +58,7 @@ for platform in platforms:
     sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceIId and platform = '" + platform + "' and start_time >= subdate(current_timestamp, 7);"
     cur.execute(sql)
     rows = cur.fetchall()
+    conn.commit()
 
     total_views = 0
     total_novels = 0
@@ -114,6 +115,11 @@ for platform in platforms:
             'avgFavs': 0,
         }
 
+    # sql = "select genre from genres where novelInstanceId = maxNovelInstanceIId and platform = '" + platform + "' and start_time >= subdate(current_timestamp, 7);"
+    # cur.execute(sql)
+    # rows = cur.fetchall()
+    # conn.commit()
+
     dataTypes = ["monopoly", "pricing", "weeklyUploadCount"]
 
     for row in rows:
@@ -125,6 +131,32 @@ for platform in platforms:
             eval(platform + "Data")["heatmapData"]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
                 row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row["start_total_views"] > 0 else 0
             eval(platform + "Data")["heatmapData"]["uploads"][row["start_time"].weekday()][row["start_time"].hour] += 1
+
+        sql = "select genre from genres where novelInstanceId=%s"
+        cur.execute(sql, (row["novelInstanceId"]))
+        rowGenres = cur.fetchall()
+        conn.commit()
+
+        for rowGenre in rowGenres:
+            rowGenre = rowGenre["genre"]
+            eval(platform + "Data")["genreData"][rowGenre]["novelCount"] += 1
+
+            if (platform in ["munpia", "novelpia", "kakaostage", "kakaopage"]):
+                eval(platform + "Data")["genreData"][rowGenre]["totalViews"] += max(row["start_total_views"], row["end_total_views"])
+                eval(platform + "Data")["genreData"][rowGenre]["avgViews"] = int(
+                    eval(platform + "Data")["genreData"][rowGenre]["totalViews"] /
+                    eval(platform + "Data")["genreData"][rowGenre]["novelCount"])
+
+            eval(platform + "Data")["genreData"][rowGenre]["totalLikes"] += max(row["start_total_likes"], row["end_total_likes"])
+            eval(platform + "Data")["genreData"][rowGenre]["avgLikes"] = int(
+                eval(platform + "Data")["genreData"][rowGenre]["totalLikes"] /
+                eval(platform + "Data")["genreData"][rowGenre]["novelCount"])
+
+            if (platform in ["munpia", "novelpia", "kakaostage"]):
+                eval(platform + "Data")["genreData"][rowGenre]["totalFavs"] += max(row["start_favs"], row["end_favs"])
+                eval(platform + "Data")["genreData"][rowGenre]["avgFavs"] = int(
+                    eval(platform + "Data")["genreData"][rowGenre]["totalFavs"] /
+                    eval(platform + "Data")["genreData"][rowGenre]["novelCount"])
 
         for dataType in dataTypes:
             if (dataType == "weeklyUploadCount" and row[dataType] > 7):
@@ -170,4 +202,3 @@ for platform in platforms:
 
 print(json.dumps(munpiaData, indent=4, sort_keys=True))
 
-conn.commit()
