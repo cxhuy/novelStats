@@ -28,21 +28,6 @@ munpiaData = {
         'avgViews': -1,
         'avgChapters': -1,
     },
-
-    'heatmapData': {},
-
-    'genreData': {},
-
-    'monopolyData': {},
-
-    'pricingData': {},
-
-    'weeklyUploadCountData': {},
-
-    'keywordsTagsData': {
-        'keywordData': {},
-        'tagData': {},
-    }
 }
 
 # platforms = ['munpia', 'novelpia', 'kakaopage', 'kakaostage', 'navernovel']
@@ -57,6 +42,16 @@ for platform in platforms:
     total_views = 0
     total_novels = 0
     total_chapters = 0
+
+    eval(platform + "Data")["heatmapData"] = {}
+    eval(platform + "Data")["genreData"] = {}
+    eval(platform + "Data")["monopolyData"] = {}
+    eval(platform + "Data")["pricingData"] = {}
+    eval(platform + "Data")["weeklyUploadCountData"] = {}
+    eval(platform + "Data")["keywordsTagsData"] = {
+        'keywordData': {},
+        'tagData': {},
+    }
 
     for platformGenre in eval(platform + "Data")["platformInfoData"]["platformGenres"]:
         eval(platform + "Data")["heatmapData"][platformGenre] = {
