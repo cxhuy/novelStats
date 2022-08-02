@@ -119,7 +119,7 @@ for platform in platforms:
         total_novels += 1
         total_chapters += row["chapters"]
 
-        sql = "select genre from genres where novelInstanceId=%s"
+        sql = "select genre from genres where novelInstanceId = %s"
         cur.execute(sql, (row["novelInstanceId"]))
         rowGenres = cur.fetchall()
         conn.commit()
@@ -205,5 +205,40 @@ for platform in platforms:
             eval(platform + "Data")["heatmapData"][platformGenre]["bestTimes"].append(["월", "화", "수", "목", "금", "토", "일"][int(index/24)] + " " + str(index%24).rjust(2, '0') + ":00 ~ " + str(index%24 + 1).rjust(2, '0') + ":00")
             avgViewList[index] = 0
 
-print(json.dumps(munpiaData, indent=4, sort_keys=True))
+    sql = "select *, totalViewCount / keywordCount as avgViewCount from (select keyword, count(*) as keywordCount, sum(viewCount) " \
+          "as totalViewCount from keywordsWithViewCount where novelInstanceId in (select max(novelInstanceId) " \
+          "as maxNovelInstanceIId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
+          "group by novelId) group by keyword order by keywordCount desc limit 20) tempTable;"
+    cur.execute(sql, (platform))
+    topKeywords = cur.fetchall()
+    conn.commit()
+
+    keywordRank = 1
+    for keyword in topKeywords:
+        eval(platform + "Data")["keywordsTagsData"]["keywordData"][keywordRank] = {
+            'keywordName': keyword["keyword"],
+            'keywordCount': keyword["keywordCount"],
+            'keywordAvgViewCount': int(keyword["avgViewCount"])
+        }
+        keywordRank += 1
+
+    if (platform in ["munpia", "novelpia"]):
+        sql = "select *, totalViewCount / tagCount as avgViewCount from (select tag, count(*) as tagCount, sum(viewCount) " \
+              "as totalViewCount from tagsWithViewCount where novelInstanceId in (select max(novelInstanceId) " \
+              "as maxNovelInstanceIId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
+              "group by novelId) group by tag order by tagCount desc limit 20) tempTable;"
+        cur.execute(sql, (platform))
+        topTags = cur.fetchall()
+        conn.commit()
+
+        tagRank = 1
+        for tag in topTags:
+            eval(platform + "Data")["keywordsTagsData"]["tagData"][tagRank] = {
+                'tagName': tag["tag"],
+                'tagCount': tag["tagCount"],
+                'tagAvgViewCount': int(tag["avgViewCount"])
+            }
+            tagRank += 1
+
+print(json.dumps(munpiaData, indent=4))
 
