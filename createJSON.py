@@ -93,8 +93,9 @@ navernovelData = {
 platforms = ['munpia', 'novelpia', 'kakaopage', 'kakaostage', 'navernovel']
 
 for platform in platforms:
-    sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceIId and platform = '" + platform + "' and start_time >= subdate(current_timestamp, 7);"
-    cur.execute(sql)
+    sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceIId and platform = %s " \
+          "and start_time >= subdate(current_timestamp, 7);"
+    cur.execute(sql, (platform))
     rows = cur.fetchall()
     conn.commit()
 
@@ -319,7 +320,8 @@ for platform in platforms:
             }
             tagRank += 1
 
-    print(json.dumps(eval(platform + "Data"), indent=4))
+    # print(json.dumps(eval(platform + "Data"), indent=4))
+    print(platform + ".json is finished")
     with open(platform + '.json', 'w', encoding='utf-8') as f:
         json.dump(eval(platform + "Data"), f, ensure_ascii=False, indent=4)
 
