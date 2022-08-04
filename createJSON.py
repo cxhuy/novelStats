@@ -93,12 +93,6 @@ navernovelData = {
 platforms = ['munpia', 'novelpia', 'kakaopage', 'kakaostage', 'navernovel']
 
 for platform in platforms:
-    sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceIId and platform = %s " \
-          "and start_time >= subdate(current_timestamp, 7);"
-    cur.execute(sql, (platform))
-    rows = cur.fetchall()
-    conn.commit()
-
     total_views = 0
     total_novels = 0
     total_chapters = 0
@@ -172,18 +166,12 @@ for platform in platforms:
             'avgFavs': 0,
         }
 
-    if platform in ["munpia", "novelpia"]:
-        dataTypes = ["monopoly", "pricing", "weeklyUploadCount"]
-    elif platform in ["kakaopage", "kakaostage"]:
-        dataTypes = ["monopoly", "weeklyUploadCount"]
-    else:
-        dataTypes = ["weeklyUploadCount"]
-    for row in rows:
-        if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
-            total_views += max(row["start_total_views"], row["end_total_views"])
-        total_novels += 1
-        total_chapters += row["chapters"]
+    sql = "select * from extendednovelData where platform = %s and start_time >= subdate(current_timestamp, 7);"
+    cur.execute(sql, (platform))
+    rows = cur.fetchall()
+    conn.commit()
 
+    for row in rows:
         sql = "select genre from genres where novelInstanceId = %s"
         cur.execute(sql, (row["novelInstanceId"]))
         rowGenres = cur.fetchall()
@@ -219,6 +207,33 @@ for platform in platforms:
 
                 eval(platform + "Data")["heatmapData"][rowGenre]["uploads"][row["start_time"].weekday()][
                     row["start_time"].hour] += 1
+
+    sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceIId and platform = %s " \
+          "and start_time >= subdate(current_timestamp, 7);"
+    cur.execute(sql, (platform))
+    rows = cur.fetchall()
+    conn.commit()
+
+    if platform in ["munpia", "novelpia"]:
+        dataTypes = ["monopoly", "pricing", "weeklyUploadCount"]
+    elif platform in ["kakaopage", "kakaostage"]:
+        dataTypes = ["monopoly", "weeklyUploadCount"]
+    else:
+        dataTypes = ["weeklyUploadCount"]
+
+    for row in rows:
+        if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
+            total_views += max(row["start_total_views"], row["end_total_views"])
+        total_novels += 1
+        total_chapters += row["chapters"]
+
+        sql = "select genre from genres where novelInstanceId = %s"
+        cur.execute(sql, (row["novelInstanceId"]))
+        rowGenres = cur.fetchall()
+        conn.commit()
+
+        for rowGenre in rowGenres:
+            rowGenre = rowGenre["genre"]
 
             eval(platform + "Data")["genreData"][rowGenre]["novelCount"] += 1
 
