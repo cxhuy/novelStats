@@ -301,7 +301,7 @@ for platform in platforms:
 
     if (platform in ["munpia", "novelpia", "kakaopage", "kakaostage"]):
         sql = "select *, totalViewCount / keywordCount as avgViewCount from (select keyword, count(*) as keywordCount, sum(viewCount) " \
-              "as totalViewCount from keywordsWithViewCount where novelInstanceId in (select max(novelInstanceId) " \
+              "as totalViewCount from longKeywordsWithViewCount where novelInstanceId in (select max(novelInstanceId) " \
               "as maxNovelInstanceIId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
               "group by novelId) group by keyword order by keywordCount desc limit 20) tempTable;"
         cur.execute(sql, (platform))
