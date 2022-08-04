@@ -166,7 +166,7 @@ for platform in platforms:
             'avgFavs': 0,
         }
 
-    sql = "select * from extendednovelData where platform = %s and start_time >= subdate(current_timestamp, 7);"
+    sql = "select * from extendedNovelData where platform = %s and start_time >= subdate(current_timestamp, 7);"
     cur.execute(sql, (platform))
     rows = cur.fetchall()
     conn.commit()
@@ -208,7 +208,7 @@ for platform in platforms:
                 eval(platform + "Data")["heatmapData"][rowGenre]["uploads"][row["start_time"].weekday()][
                     row["start_time"].hour] += 1
 
-    sql = "select * from extendednovelData where novelInstanceId = maxNovelInstanceId and platform = %s " \
+    sql = "select * from extendedNovelData where novelInstanceId = maxNovelInstanceId and platform = %s " \
           "and start_time >= subdate(current_timestamp, 7);"
     cur.execute(sql, (platform))
     rows = cur.fetchall()
