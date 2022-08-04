@@ -335,6 +335,13 @@ for platform in platforms:
             }
             tagRank += 1
 
+    eval(platform + "Data")["genreData"] = dict(sorted(eval(platform + "Data")["genreData"].items(),
+                                                       key=lambda item: item[1]["novelCount"], reverse=True))
+    eval(platform + "Data")["monopolyData"] = dict(sorted(eval(platform + "Data")["monopolyData"].items(),
+                                                       key=lambda item: item[1]["novelCount"], reverse=True))
+    eval(platform + "Data")["pricingData"] = dict(sorted(eval(platform + "Data")["pricingData"].items(),
+                                                       key=lambda item: item[1]["novelCount"], reverse=True))
+
     # print(json.dumps(eval(platform + "Data"), indent=4))
     print(platform + ".json is finished")
     with open(platform + '.json', 'w', encoding='utf-8') as f:
