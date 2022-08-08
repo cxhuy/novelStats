@@ -171,42 +171,47 @@ for platform in platforms:
     rows = cur.fetchall()
     conn.commit()
 
+    sql = "select novelInstanceId, genre from genres where novelInstanceId >= %s"
+    cur.execute(sql, (rows[0]["novelInstanceId"]))
+    genres = cur.fetchall()
+    conn.commit()
+
+    rowGenres = {}
+    for genre in genres:
+        if (genre["novelInstanceId"] not in rowGenres):
+            rowGenres[genre["novelInstanceId"]] = []
+        rowGenres[genre["novelInstanceId"]].append(genre["genre"])
+
     for row in rows:
-        sql = "select genre from genres where novelInstanceId = %s"
-        cur.execute(sql, (row["novelInstanceId"]))
-        rowGenres = cur.fetchall()
-        conn.commit()
+        if (row["novelInstanceId"] in rowGenres):
+            for rowGenre in rowGenres[row["novelInstanceId"]]:
+                if (row["end_total_views"] == None or row["end_total_views"] > -1):
+                    if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
+                        eval(platform + "Data")["heatmapData"]["모든 장르"]["views"][row["start_time"].weekday()][
+                            row["start_time"].hour] += \
+                            row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row[
+                                "start_total_views"] > 0 else 0
+                    else:
+                        eval(platform + "Data")["heatmapData"]["모든 장르"]["views"][row["start_time"].weekday()][
+                            row["start_time"].hour] += \
+                            row["end_recent_views"] - row["start_recent_views"] if row["end_recent_views"] - row[
+                                "start_recent_views"] > 0 else 0
 
-        for rowGenre in rowGenres:
-            rowGenre = rowGenre["genre"]
+                    eval(platform + "Data")["heatmapData"]["모든 장르"]["uploads"][row["start_time"].weekday()][
+                        row["start_time"].hour] += 1
 
-            if (row["end_total_views"] == None or row["end_total_views"] > -1):
-                if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
-                    eval(platform + "Data")["heatmapData"]["모든 장르"]["views"][row["start_time"].weekday()][
-                        row["start_time"].hour] += \
-                        row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row[
-                            "start_total_views"] > 0 else 0
-                else:
-                    eval(platform + "Data")["heatmapData"]["모든 장르"]["views"][row["start_time"].weekday()][
-                        row["start_time"].hour] += \
-                        row["end_recent_views"] - row["start_recent_views"] if row["end_recent_views"] - row[
-                            "start_recent_views"] > 0 else 0
+                    if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
+                        eval(platform + "Data")["heatmapData"][rowGenre]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
+                            row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row[
+                                "start_total_views"] > 0 else 0
+                    else:
+                        eval(platform + "Data")["heatmapData"][rowGenre]["views"][row["start_time"].weekday()][
+                            row["start_time"].hour] += \
+                            row["end_recent_views"] - row["start_recent_views"] if row["end_recent_views"] - row[
+                                "start_recent_views"] > 0 else 0
 
-                eval(platform + "Data")["heatmapData"]["모든 장르"]["uploads"][row["start_time"].weekday()][
-                    row["start_time"].hour] += 1
-
-                if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
-                    eval(platform + "Data")["heatmapData"][rowGenre]["views"][row["start_time"].weekday()][row["start_time"].hour] += \
-                        row["end_total_views"] - row["start_total_views"] if row["end_total_views"] - row[
-                            "start_total_views"] > 0 else 0
-                else:
-                    eval(platform + "Data")["heatmapData"][rowGenre]["views"][row["start_time"].weekday()][
-                        row["start_time"].hour] += \
-                        row["end_recent_views"] - row["start_recent_views"] if row["end_recent_views"] - row[
-                            "start_recent_views"] > 0 else 0
-
-                eval(platform + "Data")["heatmapData"][rowGenre]["uploads"][row["start_time"].weekday()][
-                    row["start_time"].hour] += 1
+                    eval(platform + "Data")["heatmapData"][rowGenre]["uploads"][row["start_time"].weekday()][
+                        row["start_time"].hour] += 1
 
     sql = "select * from extendedNovelData where novelInstanceId = maxNovelInstanceId and platform = %s " \
           "and start_time >= subdate(current_timestamp, 7);"
@@ -227,32 +232,26 @@ for platform in platforms:
         total_novels += 1
         total_chapters += row["chapters"]
 
-        sql = "select genre from genres where novelInstanceId = %s"
-        cur.execute(sql, (row["novelInstanceId"]))
-        rowGenres = cur.fetchall()
-        conn.commit()
+        if (row["novelInstanceId"] in rowGenres):
+            for rowGenre in rowGenres[row["novelInstanceId"]]:
+                eval(platform + "Data")["genreData"][rowGenre]["novelCount"] += 1
 
-        for rowGenre in rowGenres:
-            rowGenre = rowGenre["genre"]
+                if (platform in ["munpia", "novelpia", "kakaostage", "kakaopage"]):
+                    eval(platform + "Data")["genreData"][rowGenre]["totalViews"] += max(row["start_total_views"], row["end_total_views"])
+                    eval(platform + "Data")["genreData"][rowGenre]["avgViews"] = int(
+                        eval(platform + "Data")["genreData"][rowGenre]["totalViews"] /
+                        eval(platform + "Data")["genreData"][rowGenre]["novelCount"])
 
-            eval(platform + "Data")["genreData"][rowGenre]["novelCount"] += 1
-
-            if (platform in ["munpia", "novelpia", "kakaostage", "kakaopage"]):
-                eval(platform + "Data")["genreData"][rowGenre]["totalViews"] += max(row["start_total_views"], row["end_total_views"])
-                eval(platform + "Data")["genreData"][rowGenre]["avgViews"] = int(
-                    eval(platform + "Data")["genreData"][rowGenre]["totalViews"] /
+                eval(platform + "Data")["genreData"][rowGenre]["totalLikes"] += max(row["start_total_likes"], row["end_total_likes"])
+                eval(platform + "Data")["genreData"][rowGenre]["avgLikes"] = int(
+                    eval(platform + "Data")["genreData"][rowGenre]["totalLikes"] /
                     eval(platform + "Data")["genreData"][rowGenre]["novelCount"])
 
-            eval(platform + "Data")["genreData"][rowGenre]["totalLikes"] += max(row["start_total_likes"], row["end_total_likes"])
-            eval(platform + "Data")["genreData"][rowGenre]["avgLikes"] = int(
-                eval(platform + "Data")["genreData"][rowGenre]["totalLikes"] /
-                eval(platform + "Data")["genreData"][rowGenre]["novelCount"])
-
-            if (platform in ["munpia", "novelpia", "kakaostage"]):
-                eval(platform + "Data")["genreData"][rowGenre]["totalFavs"] += max(row["start_favs"], row["end_favs"])
-                eval(platform + "Data")["genreData"][rowGenre]["avgFavs"] = int(
-                    eval(platform + "Data")["genreData"][rowGenre]["totalFavs"] /
-                    eval(platform + "Data")["genreData"][rowGenre]["novelCount"])
+                if (platform in ["munpia", "novelpia", "kakaostage"]):
+                    eval(platform + "Data")["genreData"][rowGenre]["totalFavs"] += max(row["start_favs"], row["end_favs"])
+                    eval(platform + "Data")["genreData"][rowGenre]["avgFavs"] = int(
+                        eval(platform + "Data")["genreData"][rowGenre]["totalFavs"] /
+                        eval(platform + "Data")["genreData"][rowGenre]["novelCount"])
 
         for dataType in dataTypes:
             if (dataType == "weeklyUploadCount" and row[dataType] > 7):
