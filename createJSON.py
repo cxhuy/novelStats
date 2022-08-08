@@ -301,7 +301,7 @@ for platform in platforms:
     if (platform in ["munpia", "novelpia", "kakaopage", "kakaostage"]):
         sql = "select *, totalViewCount / keywordCount as avgViewCount from (select keyword, count(*) as keywordCount, sum(viewCount) " \
               "as totalViewCount from longKeywordsWithViewCount where novelInstanceId in (select max(novelInstanceId) " \
-              "as maxNovelInstanceIId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
+              "as maxNovelInstanceId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
               "group by novelId) group by keyword order by keywordCount desc limit 20) tempTable;"
         cur.execute(sql, (platform))
         topKeywords = cur.fetchall()
@@ -319,7 +319,7 @@ for platform in platforms:
     if (platform in ["munpia", "novelpia"]):
         sql = "select *, totalViewCount / tagCount as avgViewCount from (select tag, count(*) as tagCount, sum(viewCount) " \
               "as totalViewCount from tagsWithViewCount where novelInstanceId in (select max(novelInstanceId) " \
-              "as maxNovelInstanceIId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
+              "as maxNovelInstanceId from novelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
               "group by novelId) group by tag order by tagCount desc limit 20) tempTable;"
         cur.execute(sql, (platform))
         topTags = cur.fetchall()
