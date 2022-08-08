@@ -166,7 +166,8 @@ for platform in platforms:
             'avgFavs': 0,
         }
 
-    sql = "select * from extendedNovelData where platform = %s and start_time >= subdate(current_timestamp, 7);"
+    sql = "select * from extendedNovelData where platform = %s and start_time >= subdate(current_timestamp, 7) " \
+          "order by novelInstanceId;"
     cur.execute(sql, (platform))
     rows = cur.fetchall()
     conn.commit()
@@ -197,7 +198,7 @@ for platform in platforms:
 
             eval(platform + "Data")["heatmapData"]["모든 장르"]["uploads"][row["start_time"].weekday()][
                 row["start_time"].hour] += 1
-            
+
             if (row["novelInstanceId"] in rowGenres):
                 for rowGenre in rowGenres[row["novelInstanceId"]]:
                     if platform in ['munpia', 'novelpia', 'kakaopage', 'kakaostage']:
